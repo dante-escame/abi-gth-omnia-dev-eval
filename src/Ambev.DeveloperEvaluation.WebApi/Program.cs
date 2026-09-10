@@ -12,7 +12,6 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
@@ -101,6 +100,7 @@ public class Program
         catch (Exception ex)
         {
             Log.Fatal(ex, "Application terminated unexpectedly");
+            throw;
         }
         finally
         {

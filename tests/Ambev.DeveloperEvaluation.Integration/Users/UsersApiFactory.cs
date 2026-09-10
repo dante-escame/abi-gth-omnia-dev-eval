@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.MongoDb;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -16,9 +17,13 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
         .WithImage("postgres:13")
         .Build();
 
+    private readonly MongoDbContainer _catalog = new MongoDbBuilder()
+        .WithImage("mongo:8.0.16")
+        .Build();
+
     public async Task InitializeAsync()
     {
-        await _database.StartAsync();
+        await Task.WhenAll(_database.StartAsync(), _catalog.StartAsync());
 
         using var scope = Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<DefaultContext>().Database.MigrateAsync();
@@ -28,6 +33,7 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
     {
         await base.DisposeAsync();
         await _database.DisposeAsync();
+        await _catalog.DisposeAsync();
     }
 
     public async Task ResetAsync()
@@ -45,6 +51,8 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
             configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = _database.GetConnectionString(),
+                ["Mongo:ConnectionString"] = _catalog.GetConnectionString(),
+                ["Mongo:Database"] = "developer_evaluation",
                 ["Outbox:IntervalInSeconds"] = "3600"
             }));
     }
