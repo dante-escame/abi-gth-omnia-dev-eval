@@ -4,8 +4,7 @@ This is my working summary (macro analysis) of the DeveloperStore evaluation.
 
 ## Summary
 
-We're building a set of REST API endpoints for the DeveloperStore team. The core deliverable is a Sales API with full CRUD. The other resources (Products, Carts, Users, Auth) come from the template and I keep them working and consistent.
-TODO
+We're building a set of REST API endpoints for the DeveloperStore team. The core deliverable is a Sales API with full CRUD + Products, Carts, Users, Auth.
 
 Layer Architecture: Clean Architecture (Domain, Application, ORM, Messaging and WebAPI) + Event-Driven Architecture.
 
@@ -193,10 +192,15 @@ root
 
 - Cancellation never deletes a row. `PATCH /{id}/cancel` sets the status, `DELETE /{id}` applies a soft delete (logical exclusion) marker so the sale leaves the GET results.
 
-- I promoted Email/Username/PasswordHash/PersonName/Address/Geolocation/Phone to real value objects.
-
-- I'm using brazilian phone format for the phoneNumber ValueObject.
+- I promoted Email, Username, PasswordHash, PersonName, Address, Geolocation, Phone to real value objects.
 
 - Only Admins can change role of users to Admin or create Admin users.
 
 - I deleted UserRegisteredEvent to create UserRegisteredDomainEvent. I've made a lot of changes to the user template.
+
+- I decided to keep UnitTests to a minimum of:
+  - 
+  -
+  -
+
+The intention is to show the skill to build it is there, but i need to buy time for the main implementations

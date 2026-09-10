@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace Ambev.DeveloperEvaluation.Domain.Validation;
 
