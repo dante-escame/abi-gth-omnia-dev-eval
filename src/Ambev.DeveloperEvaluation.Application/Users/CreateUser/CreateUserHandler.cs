@@ -1,36 +1,45 @@
-using AutoMapper;
-using MediatR;
-using FluentValidation;
-using Ambev.DeveloperEvaluation.Domain.Repositories;
-using Ambev.DeveloperEvaluation.Domain.Entities;
-using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
+using Ambev.DeveloperEvaluation.Application.Common.Results;
+using Ambev.DeveloperEvaluation.Application.Users.Common;
 using Ambev.DeveloperEvaluation.Common.Security;
+using Ambev.DeveloperEvaluation.Domain.Entities;
+using Ambev.DeveloperEvaluation.Domain.Enums;
+using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
+using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Users.CreateUser;
 
-public class CreateUserHandler(
-    IUserRepository userRepository, 
-    IMapper mapper, 
-    IPasswordHasher passwordHasher)
-    : IRequestHandler<CreateUserCommand, CreateUserResult>
+public class CreateUserHandler(IUserRepository userRepository, IPasswordHasher passwordHasher)
+    : IRequestHandler<CreateUserCommand, Result<UserResult>>
 {
-    public async Task<CreateUserResult> Handle(CreateUserCommand command, CancellationToken cancellationToken)
+    public async Task<Result<UserResult>> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
-        var validator = new CreateUserCommandValidator();
-        var validationResult = await validator.ValidateAsync(command, cancellationToken);
+        if (command.Role != UserRole.Customer && command.CallerRole != UserRole.Admin)
+            return Result.Failure<UserResult>(UserErrors.RoleNotAllowed(command.Role.ToString()));
 
-        if (!validationResult.IsValid)
-            throw new ValidationException(validationResult.Errors);
+        if (await userRepository.GetByEmailAsync(command.Email, cancellationToken) is not null)
+            return Result.Failure<UserResult>(UserErrors.DuplicateEmail(command.Email));
 
-        var existingUser = await userRepository.GetByEmailAsync(command.Email, cancellationToken);
-        if (existingUser != null)
-            throw new InvalidOperationException($"User with email {command.Email} already exists");
+        if (await userRepository.GetByUsernameAsync(command.Username, cancellationToken) is not null)
+            return Result.Failure<UserResult>(UserErrors.DuplicateUsername(command.Username));
 
-        var user = mapper.Map<User>(command);
-        user.Password = new PasswordHash(passwordHasher.HashPassword(command.Password));
+        var user = User.Register(
+            new Username(command.Username),
+            new Email(command.Email),
+            new Phone(command.Phone),
+            new PasswordHash(passwordHasher.HashPassword(command.Password)),
+            new PersonName(command.Name.FirstName, command.Name.LastName),
+            new Address(
+                command.Address.City,
+                command.Address.Street,
+                command.Address.Number,
+                command.Address.ZipCode,
+                new Geolocation(command.Address.Geolocation.Lat, command.Address.Geolocation.Long)),
+            command.Role,
+            command.Status);
 
-        var createdUser = await userRepository.CreateAsync(user, cancellationToken);
-        var result = mapper.Map<CreateUserResult>(createdUser);
-        return result;
+        await userRepository.CreateAsync(user, cancellationToken);
+
+        return Result.Success(UserResult.From(user));
     }
 }

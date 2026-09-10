@@ -8,8 +8,11 @@ using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
+using System.Text.Json.Serialization;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
@@ -31,8 +34,14 @@ public class Program
                 options.ValidateOnBuild = true;
             });
 
-            builder.Services.AddControllers();
+            builder.Services
+                .AddControllers()
+                .AddJsonOptions(options =>
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
             builder.Services.AddEndpointsApiExplorer();
+
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
             builder.AddBasicHealthChecks();
             builder.Services.AddSwaggerGen();
@@ -59,12 +68,14 @@ public class Program
                 );
             });
 
+            builder.Services.AddValidatorsFromAssembly(typeof(ApplicationLayer).Assembly);
+
             builder.Services.Decorate(typeof(INotificationHandler<>), typeof(IdempotentDomainEventHandler<>));
 
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             var app = builder.Build();
-            app.UseMiddleware<ValidationExceptionMiddleware>();
+            app.UseExceptionHandler();
 
             if (app.Environment.IsDevelopment())
             {
@@ -82,6 +93,10 @@ public class Program
             app.MapControllers();
 
             app.Run();
+        }
+        catch (HostAbortedException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

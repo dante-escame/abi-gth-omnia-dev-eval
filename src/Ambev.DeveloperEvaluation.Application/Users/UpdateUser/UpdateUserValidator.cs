@@ -2,15 +2,16 @@ using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Validation;
 using FluentValidation;
 
-namespace Ambev.DeveloperEvaluation.Application.Users.CreateUser;
+namespace Ambev.DeveloperEvaluation.Application.Users.UpdateUser;
 
-public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
+public class UpdateUserValidator : AbstractValidator<UpdateUserCommand>
 {
-    public CreateUserCommandValidator()
+    public UpdateUserValidator()
     {
+        RuleFor(user => user.Id).NotEmpty();
         RuleFor(user => user.Email).SetValidator(new EmailValidator());
         RuleFor(user => user.Username).NotEmpty().Length(3, 50);
-        RuleFor(user => user.Password).SetValidator(new PasswordValidator());
+        RuleFor(user => user.Password).SetValidator(new PasswordValidator()!).When(user => user.Password is not null);
         RuleFor(user => user.Phone).SetValidator(new PhoneValidator());
         RuleFor(user => user.Status).NotEqual(UserStatus.Unknown);
         RuleFor(user => user.Role).NotEqual(UserRole.None);

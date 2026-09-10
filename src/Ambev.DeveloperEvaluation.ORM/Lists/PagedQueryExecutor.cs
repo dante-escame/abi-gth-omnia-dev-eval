@@ -11,7 +11,7 @@ public sealed class PagedQueryExecutor : IPagedQueryExecutor
         int size,
         CancellationToken cancellationToken = default)
     {
-        var totalItems = await source.CountAsync(cancellationToken);
+        int totalItems = await source.CountAsync(cancellationToken);
 
         var data = await source
             .Skip((page - 1) * size)
