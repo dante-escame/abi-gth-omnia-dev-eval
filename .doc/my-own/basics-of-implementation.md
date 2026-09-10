@@ -191,3 +191,4 @@ root
 
 - `SalesAPI` and `UsersAPI` run on PostgreSQL with EF Core. `ProductsAPI` and `CartsAPI` run on MongoDB, because the product and the cart fitted the document model with the use of nested value objects and line collections - we dont have cross-row variants neither.
 
+- Cancellation never deletes a row. `PATCH /{id}/cancel` sets the status, `DELETE /{id}` also applies a soft delete (logical exclusion) marker so the sale leaves the GET results
