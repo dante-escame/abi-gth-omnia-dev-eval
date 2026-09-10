@@ -5,6 +5,7 @@ using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Users.Events;
 using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
 using Ambev.DeveloperEvaluation.Domain.Validation;
+// ReSharper disable All
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
@@ -67,6 +68,47 @@ public class User : AggregateRoot, IUser
         user.Raise(new UserRegisteredDomainEvent(user.Id, email.Value, username.Value, role));
 
         return user;
+    }
+
+    public void ChangeProfile(Username username, Email email, Phone phone, PersonName name, Address address)
+    {
+        Username = username;
+        Email = email;
+        Phone = phone;
+        Name = name;
+        Address = address;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ChangePassword(PasswordHash password)
+    {
+        Password = password;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ChangeRole(UserRole role)
+    {
+        Role = role;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ChangeStatus(UserStatus status)
+    {
+        switch (status)
+        {
+            case UserStatus.Active:
+                Activate();
+                break;
+            case UserStatus.Inactive:
+                Deactivate();
+                break;
+            case UserStatus.Suspended:
+                Suspend();
+                break;
+            case UserStatus.Unknown:
+            default:
+                throw new DomainException("User status cannot be Unknown.");
+        }
     }
 
     public ValidationResultDetail Validate()

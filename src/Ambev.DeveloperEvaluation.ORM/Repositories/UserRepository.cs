@@ -1,6 +1,5 @@
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
-using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ambev.DeveloperEvaluation.ORM.Repositories;
@@ -16,16 +15,24 @@ public class UserRepository(DefaultContext context) : IUserRepository
 
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await context.Users.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        return await context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        if (!Email.TryCreate(email, out var x))
-            return null;
+        return await context.Users.FirstOrDefaultAsync(u => u.Email.Value == email, cancellationToken);
+    }
 
-        return await context.Users
-            .FirstOrDefaultAsync(u => u.Email == x, cancellationToken);
+    public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
+    {
+        return await context.Users.FirstOrDefaultAsync(u => u.Username.Value == username, cancellationToken);
+    }
+
+    public async Task<User> UpdateAsync(User user, CancellationToken cancellationToken = default)
+    {
+        context.Users.Update(user);
+        await context.SaveChangesAsync(cancellationToken);
+        return user;
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
@@ -38,4 +45,6 @@ public class UserRepository(DefaultContext context) : IUserRepository
         await context.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public IQueryable<User> Query() => context.Users.AsNoTracking();
 }
