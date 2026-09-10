@@ -2,12 +2,13 @@ using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Enums;
+using Ambev.DeveloperEvaluation.Domain.Users.Events;
 using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
 using Ambev.DeveloperEvaluation.Domain.Validation;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
-public class User : BaseEntity, IUser
+public class User : AggregateRoot, IUser
 {
     public Username Username { get; set; } = null!;
 
@@ -38,6 +39,34 @@ public class User : BaseEntity, IUser
     public User()
     {
         CreatedAt = DateTime.UtcNow;
+    }
+
+    public static User Register(
+        Username username,
+        Email email,
+        Phone phone,
+        PasswordHash password,
+        PersonName name,
+        Address address,
+        UserRole role,
+        UserStatus status)
+    {
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = username,
+            Email = email,
+            Phone = phone,
+            Password = password,
+            Name = name,
+            Address = address,
+            Role = role,
+            Status = status
+        };
+
+        user.Raise(new UserRegisteredDomainEvent(user.Id, email.Value, username.Value, role));
+
+        return user;
     }
 
     public ValidationResultDetail Validate()
