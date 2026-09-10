@@ -128,7 +128,7 @@ classDiagram
         +ProductRef Product
         +Quantity Quantity
     }
-    class ProductRef { <<???>> +Guid Id +string Title }
+    class ProductRef { <<ValueObject>> +Guid Id +string Title }
     class Quantity { <<ValueObject>> +int Value }
     class CartStatus {
         <<enumeration>>
@@ -138,7 +138,60 @@ classDiagram
     }
 
     Cart "1" *-- "0..*" CartItem : contains
-    CartItem *-- ProductRe
+    CartItem *-- ProductRef
     CartItem *-- Quantity
     Cart *-- CartStatus
+```
+
+## Sales Context — Domain Diagram
+
+```mermaid
+classDiagram
+    class Sale {
+        <<AggregateRoot>>
+        +Guid Id
+        +SaleNumber Number
+        +DateTime SoldAt
+        +CustomerRef Customer
+        +BranchRef Branch
+        +SaleStatus Status
+        +Money Total
+        +bool IsDeleted
+        +Create(cart, branch, productSnapshots) Sale
+        +ModifyItems(lines) void
+        +Cancel(reason) void
+        +CancelItem(itemId) void
+        -Recalculate() void
+    }
+    class SaleItem {
+        <<Entity>>
+        +Guid Id
+        +ProductRef Product
+        +Quantity Quantity
+        +Money UnitPrice
+        +DiscountRate Rate
+        +SaleItemTotals Totals
+        +SaleItemStatus Status
+        +Cancel() void
+    }
+    class SaleNumber { <<ValueObject>> +string Value }
+    class Money { <<ValueObject>> +decimal Amount }
+    class Quantity { <<ValueObject>> +int Value }
+    class DiscountRate { <<ValueObject>> +decimal Value }
+    class CustomerRef { <<ValueObject>> +Guid Id +string Name }
+    class BranchRef { <<ValueObject>> +Guid Id +string Name }
+    class ProductRef { <<ValueObject>> +Guid Id +string Title }
+    class SaleItemTotals { <<ValueObject>> +Money Gross +Money Discount +Money Net }
+    class IDiscountPolicy { <<DomainService>> +Resolve(Quantity) DiscountRate }
+
+    Sale "1" *-- "1..*" SaleItem : contains
+    Sale *-- SaleNumber
+    Sale *-- CustomerRef
+    Sale *-- BranchRef
+    Sale *-- Money : Total
+    SaleItem *-- ProductRef
+    SaleItem *-- Quantity
+    SaleItem *-- DiscountRate
+    SaleItem *-- SaleItemTotals
+    SaleItem ..> IDiscountPolicy : uses
 ```

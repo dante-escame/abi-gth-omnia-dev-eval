@@ -191,4 +191,12 @@ root
 
 - `SalesAPI` and `UsersAPI` run on PostgreSQL with EF Core. `ProductsAPI` and `CartsAPI` run on MongoDB, because the product and the cart fitted the document model with the use of nested value objects and line collections - we dont have cross-row variants neither.
 
-- Cancellation never deletes a row. `PATCH /{id}/cancel` sets the status, `DELETE /{id}` also applies a soft delete (logical exclusion) marker so the sale leaves the GET results
+- Cancellation never deletes a row. `PATCH /{id}/cancel` sets the status, `DELETE /{id}` applies a soft delete (logical exclusion) marker so the sale leaves the GET results.
+
+- I promoted Email/Username/PasswordHash/PersonName/Address/Geolocation/Phone to real value objects.
+
+- I'm using brazilian phone format for the phoneNumber ValueObject.
+
+- Only Admins can change role of users to Admin or create Admin users.
+
+- I deleted UserRegisteredEvent to create UserRegisteredDomainEvent. I've made a lot of changes to the user template.
