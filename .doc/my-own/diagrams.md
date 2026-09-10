@@ -21,7 +21,7 @@ flowchart LR
 
     SALES -- "reads cart lines (HTTP Req)" --> CART
     SALES -- "reads price + title (HTTP Req)" --> CAT
-    CART  -- "reads product title (HTTP)" --> CAT
+    CART  -- "reads product title (HTTP Req)" --> CAT
     IAM   -- "identity via JWT" --> SALES
     IAM   -- "identity via JWT" --> CART
     SALES -- "SaleCreated event" --> CART
@@ -33,7 +33,7 @@ flowchart LR
 ```mermaid
 classDiagram
     class User {
-        <<AggRoot>>
+        <<AggregateRoot>>
         +Guid Id
         +Email Email
         +Username Username
@@ -75,4 +75,33 @@ classDiagram
     Address *-- Geolocation
     Authentication ..> User : verifies
     Authentication ..> IJwtToken : uses
+```
+
+
+## Product Catalog Context — Domain Diagram
+
+```mermaid
+classDiagram
+    class Product {
+        <<AggregateRoot>>
+        +Guid Id
+        +ProductTitle Title
+        +Money Price
+        +string Descriptions
+        +Category Category
+        +Rating Rating
+        +UpdateDetails(...) void
+        +Reprice(Money) void
+        +SetRating(Rating) void
+    }
+    class ProductTitle { <<ValueObject>> +string Value }
+    class Money { <<ValueObject>> +decimal Amount }
+    class Category { <<ValueObject>> +string Name }
+    class Rating { <<ValueObject>> +decimal Rate +int Count }
+
+    Product *-- ProductTitle
+    Product *-- Money : Price
+    Product *-- Category
+    Product *-- ImageUrl
+    Product *-- Rating
 ```
