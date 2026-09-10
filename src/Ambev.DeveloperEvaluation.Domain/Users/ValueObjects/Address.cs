@@ -14,6 +14,14 @@ public sealed class Address : ValueObject
 
     public Geolocation Geolocation { get; }
 
+    private Address()
+    {
+        City = null!;
+        Street = null!;
+        ZipCode = null!;
+        Geolocation = null!;
+    }
+
     public Address(string city, string street, int number, string zipCode, Geolocation geolocation)
     {
         if (string.IsNullOrWhiteSpace(city))

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Validation;
 
@@ -16,6 +17,18 @@ public sealed class Email : ValueObject
             throw new DomainException(result.Errors[0].ErrorMessage);
 
         Value = value!;
+    }
+
+    public static bool TryCreate(string? value, [NotNullWhen(true)] out Email? email)
+    {
+        if (!Validator.Validate(value ?? string.Empty).IsValid)
+        {
+            email = null;
+            return false;
+        }
+
+        email = new Email(value!);
+        return true;
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
