@@ -10,9 +10,9 @@ TODO
 Layer Architecture: Clean Architecture (Domain, Application, ORM, Messaging and WebAPI) + Event-Driven Architecture.
 
 Patterns and designs used:
-- Repository pattenr (following the template).
+- Repository pattern (following the template).
 - External identity provider.
-- Domain Driven Desin.
+- Domain Driven Design.
 - Mediator pattern.
 
 ## A brief about the APIs
@@ -172,6 +172,8 @@ root
 
 - I've used `Guid` as the default identity type.
 
+- The discount rules belong only to the Sales context. The cart dont know about them.
+
 - Main flow: `POST /sales` is synchronous and is the only way a sale is created. 
   1. it takes `{ cartId, branchId }`
   2. reads the cart lines
@@ -182,3 +184,10 @@ root
   7. raises the event `SaleCreated`
 
 - `CartsAPI` consumes `SaleCreated` and moves the matching cart to `CheckedOut`. A checked-out cart is the final state for carts.
+
+- Unit prices and product titles come from `ProductsAPI` at sale time. This assures that a later change in pricing never rewrites an existing sale.
+
+- The sale number is a global sequential value in the format `SALE-000123` - database sequence.
+
+- `SalesAPI` and `UsersAPI` run on PostgreSQL with EF Core. `ProductsAPI` and `CartsAPI` run on MongoDB, because the product and the cart fitted the document model with the use of nested value objects and line collections - we dont have cross-row variants neither.
+

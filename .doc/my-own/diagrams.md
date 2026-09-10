@@ -77,7 +77,6 @@ classDiagram
     Authentication ..> IJwtToken : uses
 ```
 
-
 ## Product Catalog Context — Domain Diagram
 
 ```mermaid
@@ -87,8 +86,9 @@ classDiagram
         +Guid Id
         +ProductTitle Title
         +Money Price
-        +string Descriptions
+        +string Description
         +Category Category
+        +ImageUrl Image
         +Rating Rating
         +UpdateDetails(...) void
         +Reprice(Money) void
@@ -97,6 +97,7 @@ classDiagram
     class ProductTitle { <<ValueObject>> +string Value }
     class Money { <<ValueObject>> +decimal Amount }
     class Category { <<ValueObject>> +string Name }
+    class ImageUrl { <<ValueObject>> +string Value }
     class Rating { <<ValueObject>> +decimal Rate +int Count }
 
     Product *-- ProductTitle
@@ -104,4 +105,40 @@ classDiagram
     Product *-- Category
     Product *-- ImageUrl
     Product *-- Rating
+```
+
+## Cart Context — Domain Diagram
+
+```mermaid
+classDiagram
+    class Cart {
+        <<AggregateRoot>>
+        +Guid Id
+        +Guid CustomerId
+        +DateTime CreatedAt
+        +DateTime UpdatedAt
+        +CartStatus Status
+        +AddItem(productRef, qty) void
+        +UpdateItems(lines) void
+        +MarkCheckedOut(saleId) void
+        +Abandon() void
+    }
+    class CartItem {
+        <<ValueObject>>
+        +ProductRef Product
+        +Quantity Quantity
+    }
+    class ProductRef { <<???>> +Guid Id +string Title }
+    class Quantity { <<ValueObject>> +int Value }
+    class CartStatus {
+        <<enumeration>>
+        Active
+        CheckedOut
+        Abandoned
+    }
+
+    Cart "1" *-- "0..*" CartItem : contains
+    CartItem *-- ProductRe
+    CartItem *-- Quantity
+    Cart *-- CartStatus
 ```
