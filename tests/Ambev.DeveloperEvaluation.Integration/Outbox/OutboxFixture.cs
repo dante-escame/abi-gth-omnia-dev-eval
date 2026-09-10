@@ -1,12 +1,14 @@
 using Ambev.DeveloperEvaluation.Application;
 using Ambev.DeveloperEvaluation.Application.Events;
 using Ambev.DeveloperEvaluation.Application.Clock;
+using Ambev.DeveloperEvaluation.Application.Common.Lists;
 using Ambev.DeveloperEvaluation.Application.Ports;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Ambev.DeveloperEvaluation.ORM.Repositories;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.ORM.Clock;
+using Ambev.DeveloperEvaluation.ORM.Lists;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using MediatR;
 using NSubstitute;
@@ -58,6 +60,7 @@ public sealed class OutboxFixture : IAsyncLifetime
         services.AddScoped<IOutboxConsumerTracker, OutboxConsumerTracker>();
         services.Configure<OutboxOptions>(options => { });
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton<IPagedQueryExecutor, PagedQueryExecutor>();
         services.AddSingleton<ProcessOutboxJob>();
 
         Services = services.BuildServiceProvider(new ServiceProviderOptions
