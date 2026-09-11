@@ -127,7 +127,8 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
                 ["Mongo:ConnectionString"] = _documents.GetConnectionString(),
                 ["Mongo:Database"] = "developer_evaluation",
                 ["Outbox:IntervalInSeconds"] = "3600",
-                ["CatalogOutbox:IntervalInSeconds"] = "3600"
+                ["CatalogOutbox:IntervalInSeconds"] = "3600",
+                ["RateLimiting:Login:PermitLimit"] = UsersTestClient.UnthrottledLoginPermitLimit.ToString()
             }));
     }
 }

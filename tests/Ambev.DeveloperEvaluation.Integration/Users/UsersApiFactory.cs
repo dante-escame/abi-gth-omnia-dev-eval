@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Integration.Users;
 
-public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _database = new PostgreSqlBuilder()
         .WithImage("postgres:13")
@@ -20,6 +20,8 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
     private readonly MongoDbContainer _catalog = new MongoDbBuilder()
         .WithImage("mongo:8.0.16")
         .Build();
+
+    protected virtual int LoginPermitLimit => UsersTestClient.UnthrottledLoginPermitLimit;
 
     public async Task InitializeAsync()
     {
@@ -53,7 +55,8 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
                 ["ConnectionStrings:DefaultConnection"] = _database.GetConnectionString(),
                 ["Mongo:ConnectionString"] = _catalog.GetConnectionString(),
                 ["Mongo:Database"] = "developer_evaluation",
-                ["Outbox:IntervalInSeconds"] = "3600"
+                ["Outbox:IntervalInSeconds"] = "3600",
+                ["RateLimiting:Login:PermitLimit"] = LoginPermitLimit.ToString()
             }));
     }
 }
