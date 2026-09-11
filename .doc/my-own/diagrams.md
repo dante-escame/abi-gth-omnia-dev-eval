@@ -1,4 +1,4 @@
-# DDD Plan — Diagrams
+# Diagrams
 
 ## Context Map
 
@@ -8,27 +8,42 @@ flowchart LR
         U[User Aggregate]
         AUTH[Authentication Service]
     end
-    subgraph CAT["Products"]
+    subgraph CAT["ProductsAPI"]
         P[Product Aggregate]
     end
-    subgraph CART["Carts"]
+    subgraph SALES["CartsAPI"]
         C[Cart Aggregate]
-    end
-    subgraph SALES["Sales"]
         S[Sale Aggregate]
         BR[Branch Reference]
     end
 
-    SALES -- "reads cart lines (HTTP Req)" --> CART
-    SALES -- "reads price + title (HTTP Req)" --> CAT
-    CART  -- "reads product title (HTTP Req)" --> CAT
-    IAM   -- "identity via JWT" --> SALES
-    IAM   -- "identity via JWT" --> CART
-    SALES -- "SaleCreated event" --> CART
-    SALES -.->|"SaleModified / SaleCancelled / ItemCancelled"| BUS[(Log - MessageBus Abstracted)]
+    C -- "checkout, same transaction" --> S
+    SALES -- "price and title" --> CAT
+    IAM -- "identity using JWT" --> SALES
+    IAM -- "identity using JWT" --> CAT
+    SALES -.->|"SaleCreated / SaleModified / SaleCancelled / ItemCancelled"| BUS[(Log - MessageBus Abstracted)]
 ```
 
-## Identity and Access Management (IAM) — Domain Diagram
+## Checkout Flow
+
+```mermaid
+flowchart TD
+    A["POST /sales with cartId and branchId"] --> B[resolve branch from the seeded list]
+    B --> C["load the whole Cart aggregate"]
+    C --> D{cart is active, owned and not empty}
+    D -- no --> E["422 or 409, nothing written"]
+    D -- yes --> F["read price and title per product"]
+    F -- "a product is missing" --> E
+    F --> G["apply the discount tiers and build the Sale"]
+    G -- "a line above 20 units" --> E
+    G --> H["allocate the sale number from the sequence"]
+    H --> I["cart.MarkCheckedOut(saleId)"]
+    I --> J["one transaction: sale, items, cart, outbox row"]
+    J --> K["201 with the sale, cart already CheckedOut"]
+    J --> L[outbox job publishes SaleCreated]
+```
+
+## Identity and Access Management (IAM) - Domain Diagram
 
 ```mermaid
 classDiagram
@@ -77,7 +92,7 @@ classDiagram
     Authentication ..> IJwtToken : uses
 ```
 
-## Product Catalog Context — Domain Diagram
+## Product Catalog Context - Domain Diagram
 
 ```mermaid
 classDiagram
@@ -107,7 +122,7 @@ classDiagram
     Product *-- Rating
 ```
 
-## Cart Context — Domain Diagram
+## Sales Context - Domain Diagram
 
 ```mermaid
 classDiagram
@@ -118,35 +133,21 @@ classDiagram
         +DateTime CreatedAt
         +DateTime UpdatedAt
         +CartStatus Status
-        +AddItem(productRef, qty) void
-        +UpdateItems(lines) void
+        +Guid SaleId
+        +ReplaceItems(lines) void
         +MarkCheckedOut(saleId) void
-        +Abandon() void
     }
     class CartItem {
         <<ValueObject>>
         +ProductRef Product
         +Quantity Quantity
     }
-    class ProductRef { <<ValueObject>> +Guid Id +string Title }
-    class Quantity { <<ValueObject>> +int Value }
     class CartStatus {
         <<enumeration>>
         Active
         CheckedOut
         Abandoned
     }
-
-    Cart "1" *-- "0..*" CartItem : contains
-    CartItem *-- ProductRef
-    CartItem *-- Quantity
-    Cart *-- CartStatus
-```
-
-## Sales Context — Domain Diagram
-
-```mermaid
-classDiagram
     class Sale {
         <<AggregateRoot>>
         +Guid Id
@@ -154,11 +155,12 @@ classDiagram
         +DateTime SoldAt
         +CustomerRef Customer
         +BranchRef Branch
+        +Guid CartId
         +SaleStatus Status
         +Money Total
         +bool IsDeleted
-        +Create(cart, branch, productSnapshots) Sale
-        +ModifyItems(lines) void
+        +Create(number, customer, branch, cartId, lines, policy) Sale
+        +ModifyItems(lines, policy) void
         +Cancel(reason) void
         +CancelItem(itemId) void
         -Recalculate() void
@@ -183,6 +185,12 @@ classDiagram
     class ProductRef { <<ValueObject>> +Guid Id +string Title }
     class SaleItemTotals { <<ValueObject>> +Money Gross +Money Discount +Money Net }
     class IDiscountPolicy { <<DomainService>> +Resolve(Quantity) DiscountRate }
+    class ISaleNumberGenerator { <<DomainService>> +Next() SaleNumber }
+    class IBranchDirectory { <<DomainService>> +Resolve(Guid) BranchRef }
+
+    Cart "1" *-- "0..*" CartItem : contains
+    CartItem *-- Quantity
+    Cart ..> Sale : checkout produces
 
     Sale "1" *-- "1..*" SaleItem : contains
     Sale *-- SaleNumber
@@ -193,5 +201,22 @@ classDiagram
     SaleItem *-- Quantity
     SaleItem *-- DiscountRate
     SaleItem *-- SaleItemTotals
-    SaleItem ..> IDiscountPolicy : uses
+    Sale ..> IDiscountPolicy : uses
+    Sale ..> ISaleNumberGenerator : numbered by
+    Sale ..> IBranchDirectory : branch resolved by
+```
+
+## Sale Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active : POST /sales
+    Active --> Active : PUT recalculates
+    Active --> Active : an item is cancelled and others remain
+    Active --> Cancelled : PATCH cancel
+    Active --> Cancelled : the last active item is cancelled
+    Cancelled --> Cancelled : cancel again, nothing raised
+    Active --> Deleted : DELETE cancels then soft deletes
+    Cancelled --> Deleted : DELETE soft deletes
+    Deleted --> Deleted : DELETE again, still 204
 ```

@@ -165,30 +165,25 @@ root
 
 ### Important Notes/Decisions
 
+#### About Architecture
+
+- Initially i've drawn `SalesAPI` as a separate microsservice, i changed my mind because a sale conceptually is a checked out cart that has to have it's sale's business rules validated and become effectively a sale. 
+If we split the sales entities in a separate context/microservice we would have to handle different distributed software problemas such as:
+  - Where to put the discount rules considering that is a sale concept but the carts need it to guarantee the check out event conditions.
+  - The response for the user would become async in a pure EDA environment.
+So thinking about boundaries and simplicity, i decided to merge both microservices that i initially have drawn as separate.
+
 - A sale with no active items is not a valid state. Cancelling the last (only) active item of a sale triggers the transitions the whole sale to `Cancelled` raising `ItemCancelled` and `SaleCancelled`.
 
-- I designed 4 APIs: `SalesAPI`, `ProductsAPI`, `CartsAPI`, `UsersAPI`. The single auth endpoint lives inside `UsersAPI` for simplicity.
+- I designed 3 APIs: `ProductsAPI`, `CartsAPI`, `UsersAPI`. The single auth endpoint lives inside `UsersAPI` for simplicity.
+
+- I coded all of the 3 API codebases in a single .NET solution de-modularized. This serves only as a simplicity decision for this exercise. Ideally they would be located in differente repositories of differente folder structures (solutions) of the same repository. I worked in architectures before that had the microservices separated by modules inside the same solution in different projects (each one with it's own Program.cs, appsettings and executables).
 
 - I've used `Guid` as the default identity type.
 
-- The discount rules belong only to the Sales context. The cart dont know about them.
-
-- Main flow: `POST /sales` is synchronous and is the only way a sale is created. 
-  1. it takes `{ cartId, branchId }`
-  2. reads the cart lines
-  3. read price and title for each `ProductsAPI`
-  4. it resolves the branch name locally
-  5. applies the discounts
-  6. persists and answers `201` or `422`
-  7. raises the event `SaleCreated`
-
-- `CartsAPI` consumes `SaleCreated` and moves the matching cart to `CheckedOut`. A checked-out cart is the final state for carts.
-
 - Unit prices and product titles come from `ProductsAPI` at sale time. This assures that a later change in pricing never rewrites an existing sale.
 
-- The sale number is a global sequential value in the format `SALE-000123` - database sequence.
-
-- `SalesAPI` and `UsersAPI` run on PostgreSQL with EF Core. `ProductsAPI` and `CartsAPI` run on MongoDB, because the product and the cart fitted the document model with the use of nested value objects and line collections - we dont have cross-row variants neither.
+- The sale number is a global sequential value in the format `SALE-000123` - this is a database sequence.
 
 - Cancellation never deletes a row. `PATCH /{id}/cancel` sets the status, `DELETE /{id}` applies a soft delete (logical exclusion) marker so the sale leaves the GET results.
 
@@ -196,11 +191,8 @@ root
 
 - Only Admins can change role of users to Admin or create Admin users.
 
-- I deleted UserRegisteredEvent to create UserRegisteredDomainEvent. I've made a lot of changes to the user template.
+- I renamed UserRegisteredEvent to UserRegisteredDomainEvent. I've made a lot of changes to the user template.
 
-- I decided to keep UnitTests to a minimum of:
-  - 
-  -
-  -
+- In catalog context, i created following events so we can keep a small reference table of what it needs from another context: `ProductCreated`, `ProductUpdated`, `ProductDeleted`.
 
-The intention is to show the skill to build it is there, but i need to buy time for the main implementations
+- I implemented Login rate limiting. Ideally this would be implemented inside our cloud provider environment (such as Azure or AWS API Gateways). 
