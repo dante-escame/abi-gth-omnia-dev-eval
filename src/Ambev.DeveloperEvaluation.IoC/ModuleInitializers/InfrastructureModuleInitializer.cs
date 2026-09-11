@@ -53,6 +53,8 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddHostedService(provider => provider.GetRequiredService<ProcessCatalogOutboxJob>());
         builder.Services.AddSingleton<CartContext>();
         builder.Services.AddScoped<IProductTitles, MongoProductTitles>();
+        builder.Services.AddScoped<ICartRepository, MongoCartRepository>();
+        builder.Services.AddScoped<ICartQueries, MongoCartQueries>();
         builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>(
             "MongoDB",
             failureStatus: HealthStatus.Unhealthy,
