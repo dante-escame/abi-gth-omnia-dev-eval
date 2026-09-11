@@ -1,11 +1,8 @@
-using System.Security.Claims;
 using Ambev.DeveloperEvaluation.Application.Carts.DeleteCart;
 using Ambev.DeveloperEvaluation.Application.Carts.GetCart;
 using Ambev.DeveloperEvaluation.Application.Carts.ListCarts;
-using Ambev.DeveloperEvaluation.Application.Common;
 using Ambev.DeveloperEvaluation.Application.Common.Lists;
 using Ambev.DeveloperEvaluation.Application.Common.Results;
-using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Carts.Common;
 using MediatR;
@@ -23,7 +20,7 @@ public class CartsController(IMediator mediator) : ControllerBase
     [ProducesResponseType(typeof(ListCartsResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> ListCarts(CancellationToken cancellationToken)
     {
-        var page = await mediator.Send(new ListCartsQuery(ParseList(), Caller()), cancellationToken);
+        var page = await mediator.Send(new ListCartsQuery(ParseList(), User.ToCallerContext()), cancellationToken);
 
         return Ok(ListCartsResponse.From(page));
     }
@@ -33,7 +30,7 @@ public class CartsController(IMediator mediator) : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCart([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetCartQuery(id, Caller()), cancellationToken);
+        var result = await mediator.Send(new GetCartQuery(id, User.ToCallerContext()), cancellationToken);
 
         return result.IsSuccess
             ? Ok(CartResponse.From(result.Value))
@@ -47,7 +44,7 @@ public class CartsController(IMediator mediator) : ControllerBase
         [FromBody] CartRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(request.ToCreateCommand(Caller()), cancellationToken);
+        var result = await mediator.Send(request.ToCreateCommand(User.ToCallerContext()), cancellationToken);
 
         if (result.IsFailure)
             return Problem(result.Error!);
@@ -67,7 +64,7 @@ public class CartsController(IMediator mediator) : ControllerBase
         [FromBody] CartRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(request.ToUpdateCommand(id, Caller()), cancellationToken);
+        var result = await mediator.Send(request.ToUpdateCommand(id, User.ToCallerContext()), cancellationToken);
 
         return result.IsSuccess
             ? Ok(CartResponse.From(result.Value))
@@ -80,14 +77,10 @@ public class CartsController(IMediator mediator) : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteCart([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeleteCartCommand(id, Caller()), cancellationToken);
+        var result = await mediator.Send(new DeleteCartCommand(id, User.ToCallerContext()), cancellationToken);
 
         return result.IsSuccess ? NoContent() : Problem(result.Error!);
     }
-
-    private CallerContext Caller() => new(
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
-        Enum.TryParse<UserRole>(User.FindFirstValue(ClaimTypes.Role), out var role) ? role : UserRole.Customer);
 
     private ListQuery ParseList() =>
         ListQueryParser.Parse(Request.Query.ToDictionary(
