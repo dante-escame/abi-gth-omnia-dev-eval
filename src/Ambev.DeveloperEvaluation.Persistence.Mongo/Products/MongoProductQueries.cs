@@ -1,6 +1,5 @@
 using Ambev.DeveloperEvaluation.Application.Ports;
 using Ambev.DeveloperEvaluation.Application.Products.Common;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Ambev.DeveloperEvaluation.Persistence.Mongo.Products;

@@ -2,6 +2,7 @@ using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Users.Events;
 using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
+using Ambev.DeveloperEvaluation.Integration.Common;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Bogus;
@@ -21,7 +22,7 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact]
+    [ContainerFact]
     public async Task Saving_A_User_Writes_One_Outbox_Row_In_The_Same_Transaction()
     {
         // Arrange
@@ -54,7 +55,7 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
         }
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Failed_Save_Writes_Neither_The_User_Nor_The_Outbox_Row()
     {
         // Arrange
@@ -82,7 +83,7 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
         }
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task An_Outbox_Cycle_Publishes_The_Pending_Message_And_Logs_It_Once()
     {
         // Arrange
@@ -110,7 +111,7 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
         consumer.HandlerName.Should().Be("UserRegisteredDomainEventHandler");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Duplicated_Dispatch_Runs_The_Handler_Only_Once()
     {
         // Arrange

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Ambev.DeveloperEvaluation.Integration.Common;
 using FluentAssertions;
 using Xunit;
 
@@ -10,7 +11,7 @@ public class LoginRateLimitTests(LoginRateLimitApiFactory factory) : IClassFixtu
 {
     private readonly HttpClient _client = factory.CreateClient();
 
-    [Fact]
+    [ContainerFact]
     public async Task Login_Attempts_Beyond_The_Window_Limit_Return_429()
     {
         // Arrange
@@ -35,7 +36,7 @@ public class LoginRateLimitTests(LoginRateLimitApiFactory factory) : IClassFixtu
         body.GetProperty("detail").GetString().Should().NotBeNullOrWhiteSpace();
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Endpoints_Outside_The_Login_Policy_Are_Not_Throttled()
     {
         // Act

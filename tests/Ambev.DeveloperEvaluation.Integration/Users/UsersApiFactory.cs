@@ -1,3 +1,4 @@
+using Ambev.DeveloperEvaluation.Integration.Common;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.WebApi;
 using Microsoft.AspNetCore.Hosting;
@@ -25,6 +26,9 @@ public class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         await Task.WhenAll(_database.StartAsync(), _catalog.StartAsync());
 
         using var scope = Services.CreateScope();
@@ -33,6 +37,9 @@ public class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public new async Task DisposeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         await base.DisposeAsync();
         await _database.DisposeAsync();
         await _catalog.DisposeAsync();
@@ -40,6 +47,9 @@ public class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public async Task ResetAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
         await context.Database.ExecuteSqlRawAsync(@"TRUNCATE ""Users"", outbox_messages, outbox_message_consumers");

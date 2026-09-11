@@ -5,20 +5,21 @@ using Ambev.DeveloperEvaluation.Domain.Carts;
 using Ambev.DeveloperEvaluation.Domain.Carts.ValueObjects;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Integration.Common;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Integration.Carts;
 
-[Collection(CartsCollection.Name)]
-public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
+[Collection(SalesContextCollection.Name)]
+public class CartsEndpointsTests(SalesContextApiFactory factory) : IAsyncLifetime
 {
     public Task InitializeAsync() => factory.ResetAsync();
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact]
+    [ContainerFact]
     public async Task Every_Cart_Endpoint_Refuses_A_Caller_Without_A_Token()
     {
         // Arrange
@@ -40,7 +41,7 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         deleted.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Creating_A_Cart_Returns_201_With_A_Location_Header_And_The_Token_Owner()
     {
         // Arrange
@@ -65,7 +66,7 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         line.GetProperty("quantity").GetInt32().Should().Be(4);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Creating_A_Cart_With_An_Empty_Product_List_Returns_400_With_The_Error_Body()
     {
         // Arrange
@@ -79,7 +80,7 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         await response.ShouldBeErrorBodyAsync("ValidationError");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Replacing_The_Lines_Of_A_Checked_Out_Cart_Returns_409()
     {
         // Arrange
@@ -96,7 +97,7 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         await response.ShouldBeErrorBodyAsync("Carts.AlreadyCheckedOut");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Deleting_A_Checked_Out_Cart_Returns_409()
     {
         // Arrange
@@ -111,7 +112,7 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         await response.ShouldBeErrorBodyAsync("Carts.AlreadyCheckedOut");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Cart_Belonging_To_Someone_Else_Looks_Like_It_Does_Not_Exist()
     {
         // Arrange
@@ -133,7 +134,7 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         deleted.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Customer_Listing_Carts_Sees_Only_Their_Own_Totals_Included()
     {
         // Arrange
@@ -159,7 +160,7 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
             .GetProperty("userId").GetString().Should().Be(customerId.ToString());
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Manager_Is_Not_Scoped_To_A_Single_Customer()
     {
         // Arrange
@@ -178,7 +179,7 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         body.GetProperty("totalItems").GetInt32().Should().Be(2);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Deleting_A_Cart_The_Caller_Owns_Removes_It_For_Good()
     {
         // Arrange

@@ -1,5 +1,4 @@
 using Ambev.DeveloperEvaluation.Application.Common.Results;
-using Microsoft.AspNetCore.Http;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Common;
 

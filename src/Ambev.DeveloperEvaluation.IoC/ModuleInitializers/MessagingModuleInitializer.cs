@@ -1,7 +1,6 @@
 using Ambev.DeveloperEvaluation.Catalog.IntegrationEvents;
 using Ambev.DeveloperEvaluation.Sales.IntegrationEvents;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
 using Rebus.Transport.InMem;

@@ -6,6 +6,7 @@ using Ambev.DeveloperEvaluation.Application.Ports;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Ambev.DeveloperEvaluation.Domain.Sales.Services;
+using Ambev.DeveloperEvaluation.Integration.Common;
 using Ambev.DeveloperEvaluation.ORM.Repositories;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.ORM.Clock;
@@ -34,6 +35,9 @@ public sealed class OutboxFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         await _database.StartAsync();
 
         var services = new ServiceCollection();
@@ -91,6 +95,9 @@ public sealed class OutboxFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         if (Services != null!)
             await Services.DisposeAsync();
 
@@ -99,6 +106,9 @@ public sealed class OutboxFixture : IAsyncLifetime
 
     public async Task ResetAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         Logs.Clear();
 
         using var scope = Services.CreateScope();

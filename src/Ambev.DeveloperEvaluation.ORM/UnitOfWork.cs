@@ -1,5 +1,4 @@
 using Ambev.DeveloperEvaluation.Application.Ports;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Ambev.DeveloperEvaluation.ORM;

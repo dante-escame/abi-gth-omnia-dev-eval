@@ -145,6 +145,54 @@ public class CartTests
     }
 
     [Fact]
+    public void Checking_A_Cart_Out_Stamps_The_Sale_It_Became()
+    {
+        // Arrange
+        var cart = CartTestData.Cart();
+        var saleId = Guid.NewGuid();
+
+        // Act
+        cart.MarkCheckedOut(saleId);
+
+        // Assert
+        cart.Status.Should().Be(CartStatus.CheckedOut);
+        cart.SaleId.Should().Be(saleId);
+        cart.CheckedOutAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        cart.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Checking_Out_A_Cart_That_Is_Already_Checked_Out_Changes_Nothing()
+    {
+        // Arrange
+        var cart = CartTestData.Cart();
+        cart.MarkCheckedOut(Guid.NewGuid());
+        var saleId = cart.SaleId;
+        var checkedOutAt = cart.CheckedOutAt;
+
+        // Act
+        cart.MarkCheckedOut(Guid.NewGuid());
+
+        // Assert
+        cart.SaleId.Should().Be(saleId);
+        cart.CheckedOutAt.Should().Be(checkedOutAt);
+    }
+
+    [Fact]
+    public void Checking_A_Cart_Out_Without_A_Sale_Throws()
+    {
+        // Arrange
+        var cart = CartTestData.Cart();
+
+        // Act
+        var act = () => cart.MarkCheckedOut(Guid.Empty);
+
+        // Assert
+        act.Should().Throw<DomainException>();
+        cart.Status.Should().Be(CartStatus.Active);
+    }
+
+    [Fact]
     public void Restoring_A_Cart_Keeps_Its_Identity_Status_And_Timestamps()
     {
         // Arrange

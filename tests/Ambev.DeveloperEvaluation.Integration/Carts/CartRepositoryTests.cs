@@ -1,6 +1,7 @@
 using Ambev.DeveloperEvaluation.Domain.Carts;
 using Ambev.DeveloperEvaluation.Domain.Carts.ValueObjects;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Integration.Common;
 using Ambev.DeveloperEvaluation.ORM;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -9,14 +10,14 @@ using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Integration.Carts;
 
-[Collection(CartsCollection.Name)]
-public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
+[Collection(SalesContextCollection.Name)]
+public class CartRepositoryTests(SalesContextApiFactory factory) : IAsyncLifetime
 {
     public Task InitializeAsync() => factory.ResetAsync();
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Cart_With_Several_Lines_Survives_A_Round_Trip()
     {
         // Arrange
@@ -44,7 +45,7 @@ public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
         stored.Items.Single(item => item.Product.Id == titleless.Product.Id).Product.Title.Should().BeNull();
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task The_Stored_Rows_Use_The_Documented_Column_Names()
     {
         // Arrange
@@ -74,7 +75,7 @@ public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
                 table)
             .ToListAsync();
 
-    [Fact]
+    [ContainerFact]
     public async Task Updating_A_Cart_Replaces_The_Whole_Embedded_Line_Array()
     {
         // Arrange
@@ -96,7 +97,7 @@ public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
         stored.UpdatedAt.Should().NotBeNull();
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Deleting_A_Cart_Reports_Whether_A_Document_Actually_Matched()
     {
         // Arrange

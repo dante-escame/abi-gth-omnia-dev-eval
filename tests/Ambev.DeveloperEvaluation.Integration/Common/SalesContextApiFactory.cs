@@ -4,6 +4,7 @@ using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
 using Ambev.DeveloperEvaluation.Integration.Users;
 using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.Persistence.Mongo;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Outbox;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Products;
@@ -19,10 +20,11 @@ using MongoDB.Driver;
 using Testcontainers.MongoDb;
 using Testcontainers.PostgreSql;
 using Xunit;
+// ReSharper disable MemberCanBePrivate.Global
 
-namespace Ambev.DeveloperEvaluation.Integration.Carts;
+namespace Ambev.DeveloperEvaluation.Integration.Common;
 
-public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public sealed class SalesContextApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     public const string Password = "Passw0rd@1";
 
@@ -42,6 +44,9 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
 
     public async Task InitializeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         await Task.WhenAll(_database.StartAsync(), _documents.StartAsync());
 
         using var scope = Services.CreateScope();
@@ -50,6 +55,9 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
 
     public new async Task DisposeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         await base.DisposeAsync();
         await _database.DisposeAsync();
         await _documents.DisposeAsync();
@@ -57,11 +65,14 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
 
     public async Task ResetAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         using (var scope = Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
             await context.Database.ExecuteSqlRawAsync(
-                @"TRUNCATE ""Users"", carts, cart_items, sales, sale_items, outbox_messages, outbox_message_consumers");
+                """TRUNCATE "Users", carts, cart_items, sales, sale_items, outbox_messages, outbox_message_consumers""");
         }
 
         await Catalog.Products.DeleteManyAsync(FilterDefinition<ProductDocument>.Empty);
@@ -72,6 +83,9 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
 
     public Task<int> RunOutboxCycleAsync() =>
         Services.GetRequiredService<ProcessCatalogOutboxJob>().ProcessBatchAsync();
+
+    public Task<int> RunSaleOutboxCycleAsync() =>
+        Services.GetRequiredService<ProcessOutboxJob>().ProcessBatchAsync();
 
     public async Task<(HttpClient Client, Guid UserId)> SignInAsync(UserRole role)
     {
@@ -128,8 +142,8 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
     }
 }
 
-[CollectionDefinition(CartsCollection.Name)]
-public sealed class CartsCollection : ICollectionFixture<CartsApiFactory>
+[CollectionDefinition(SalesContextCollection.Name)]
+public sealed class SalesContextCollection : ICollectionFixture<SalesContextApiFactory>
 {
-    public const string Name = "Carts";
+    public const string Name = "Sales Context";
 }

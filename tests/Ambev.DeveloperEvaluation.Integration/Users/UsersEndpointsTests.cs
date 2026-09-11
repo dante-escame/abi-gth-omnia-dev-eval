@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Ambev.DeveloperEvaluation.Domain.Enums;
+using Ambev.DeveloperEvaluation.Integration.Common;
 using FluentAssertions;
 using Xunit;
 
@@ -15,7 +16,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact]
+    [ContainerFact]
     public async Task Creating_A_User_Returns_201_With_The_Documented_Body()
     {
         // Arrange
@@ -36,7 +37,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         created.GetProperty("role").GetString().Should().Be("Customer");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Creating_A_User_With_An_Elevated_Role_And_No_Admin_Caller_Returns_400()
     {
         // Arrange
@@ -50,7 +51,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         await ShouldBeErrorBody(response, "Users.RoleNotAllowed");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Creating_A_User_With_An_Email_That_Is_Taken_Returns_409()
     {
         // Arrange
@@ -64,7 +65,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         await ShouldBeErrorBody(response, "Users.DuplicateEmail");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Creating_A_User_From_An_Invalid_Body_Returns_400_With_The_Error_Body()
     {
         // Arrange
@@ -78,7 +79,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         await ShouldBeErrorBody(response, "ValidationError");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Reading_A_User_That_Does_Not_Exist_Returns_404_With_The_Error_Body()
     {
         // Act
@@ -89,7 +90,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         await ShouldBeErrorBody(response, "Users.NotFound");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Listing_Users_Without_A_Token_Returns_401()
     {
         // Act
@@ -99,7 +100,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Listing_Users_Pages_Orders_And_Reports_The_Documented_Totals()
     {
         // Arrange
@@ -130,7 +131,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         usernames[0].Should().Be("user10");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Listing_Users_Filters_With_A_Partial_Match_And_A_Range()
     {
         // Arrange
@@ -156,7 +157,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         exactBody.GetProperty("totalItems").GetInt32().Should().Be(1);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Updating_A_User_Replaces_The_Mutable_Fields_And_Keeps_The_Password()
     {
         // Arrange
@@ -181,7 +182,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         updated.GetProperty("password").GetString().Should().Be(originalHash);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Updating_A_User_With_A_New_Password_Rehashes_It()
     {
         // Arrange
@@ -206,7 +207,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         await _client.AuthenticateAsync("rotate@example.com", "N3wPassw0rd@1");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Updating_A_User_That_Does_Not_Exist_Returns_404()
     {
         // Arrange
@@ -221,7 +222,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         await ShouldBeErrorBody(response, "Users.NotFound");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Updating_A_User_To_An_Email_That_Is_Taken_Returns_409()
     {
         // Arrange
@@ -240,7 +241,7 @@ public class UsersEndpointsTests(UsersApiFactory factory) : IClassFixture<UsersA
         await ShouldBeErrorBody(response, "Users.DuplicateEmail");
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Promoting_A_User_To_Admin_Without_An_Admin_Caller_Returns_403()
     {
         // Arrange
