@@ -8,6 +8,7 @@ using Ambev.DeveloperEvaluation.ORM.Lists;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.ORM.Repositories;
 using Ambev.DeveloperEvaluation.Persistence.Mongo;
+using Ambev.DeveloperEvaluation.Persistence.Mongo.Lists;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Products;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,9 @@ public class InfrastructureModuleInitializer : IModuleInitializer
             provider.GetRequiredService<IMongoClient>()
                 .GetDatabase(provider.GetRequiredService<IOptions<MongoOptions>>().Value.Database));
         builder.Services.AddSingleton<CatalogContext>();
+        builder.Services.AddSingleton<IDocumentPagedQueryExecutor, DocumentPagedQueryExecutor>();
+        builder.Services.AddScoped<IProductRepository, MongoProductRepository>();
+        builder.Services.AddScoped<IProductQueries, MongoProductQueries>();
         builder.Services.AddHostedService<ProductIndexInitializer>();
     }
 }
