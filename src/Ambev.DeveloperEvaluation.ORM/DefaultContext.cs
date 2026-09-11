@@ -1,5 +1,7 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Entities;
+using Ambev.DeveloperEvaluation.Domain.Sales;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
+using Ambev.DeveloperEvaluation.ORM.Sales;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -13,12 +15,17 @@ public class DefaultContext(
 {
     public DbSet<User> Users { get; set; }
 
+    public DbSet<Sale> Sales { get; set; }
+
+    public DbSet<SaleItem> SaleItems { get; set; }
+
     public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     public DbSet<OutboxMessageConsumer> OutboxMessageConsumers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasSequence<long>(SaleNumberGenerator.SequenceName).StartsAt(1).IncrementsBy(1);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
     }
