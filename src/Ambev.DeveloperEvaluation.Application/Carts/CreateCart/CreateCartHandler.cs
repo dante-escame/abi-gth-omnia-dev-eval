@@ -7,12 +7,12 @@ using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Carts.CreateCart;
 
-public sealed class CreateCartHandler(ICartRepository cartRepository, IProductTitles productTitles)
+public sealed class CreateCartHandler(ICartRepository cartRepository, IProductReader productReader)
     : IRequestHandler<CreateCartCommand, Result<CartResult>>
 {
     public async Task<Result<CartResult>> Handle(CreateCartCommand command, CancellationToken cancellationToken)
     {
-        var items = await CartLines.BuildAsync(command.Products, productTitles, cancellationToken);
+        var items = await CartLines.BuildAsync(command.Products, productReader, cancellationToken);
 
         var cart = Cart.Create(command.Caller.UserId, items);
 

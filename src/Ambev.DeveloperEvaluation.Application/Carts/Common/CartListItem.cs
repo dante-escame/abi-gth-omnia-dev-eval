@@ -1,3 +1,5 @@
+using Ambev.DeveloperEvaluation.Domain.Enums;
+
 namespace Ambev.DeveloperEvaluation.Application.Carts.Common;
 
 public sealed class CartListItem
@@ -8,7 +10,7 @@ public sealed class CartListItem
 
     public DateTime Date { get; set; }
 
-    public string Status { get; set; } = string.Empty;
+    public CartStatus Status { get; set; }
 
     public IReadOnlyList<CartLineItem> Items { get; set; } = [];
 }

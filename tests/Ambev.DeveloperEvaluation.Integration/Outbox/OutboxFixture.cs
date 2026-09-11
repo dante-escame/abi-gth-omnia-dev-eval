@@ -64,7 +64,7 @@ public sealed class OutboxFixture : IAsyncLifetime
         services.AddSingleton(Substitute.For<IDocumentPagedQueryExecutor>());
         services.AddSingleton(Substitute.For<IProductRepository>());
         services.AddSingleton(Substitute.For<IProductQueries>());
-        services.AddSingleton(Substitute.For<IProductTitles>());
+        services.AddSingleton(Substitute.For<IProductReader>());
         services.AddSingleton(Substitute.For<IProductEventReplay>());
         services.AddSingleton(Substitute.For<ICartRepository>());
         services.AddSingleton(Substitute.For<ICartQueries>());

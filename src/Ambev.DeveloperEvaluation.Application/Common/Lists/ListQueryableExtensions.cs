@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -108,6 +109,12 @@ public static class ListQueryableExtensions
 
             if (underlying == typeof(Guid))
                 return Guid.Parse(raw);
+
+            if (underlying == typeof(DateTime))
+                return DateTime.Parse(
+                    raw,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
 
             return Convert.ChangeType(raw, underlying);
         }

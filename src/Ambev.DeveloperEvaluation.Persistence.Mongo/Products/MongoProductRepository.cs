@@ -24,6 +24,20 @@ public sealed class MongoProductRepository(CatalogContext context) : IProductRep
         return document?.ToAggregate();
     }
 
+    public async Task<IReadOnlyList<Product>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+            return [];
+
+        var documents = await context.Products
+            .Find(product => ids.Contains(product.Id) && product.DeletedAt == null)
+            .ToListAsync(cancellationToken);
+
+        return documents.Select(document => document.ToAggregate()).ToList();
+    }
+
     public async Task<Product> UpdateAsync(Product product, CancellationToken cancellationToken = default)
     {
         var update = Builders<ProductDocument>.Update

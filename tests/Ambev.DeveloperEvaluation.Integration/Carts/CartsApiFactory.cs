@@ -5,7 +5,6 @@ using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
 using Ambev.DeveloperEvaluation.Integration.Users;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.Persistence.Mongo;
-using Ambev.DeveloperEvaluation.Persistence.Mongo.Carts;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Outbox;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Products;
 using Ambev.DeveloperEvaluation.WebApi;
@@ -37,8 +36,6 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
         .WithImage("mongo:8.0.16")
         .Build();
 
-    public CartContext Carts => Services.GetRequiredService<CartContext>();
-
     public CatalogContext Catalog => Services.GetRequiredService<CatalogContext>();
 
     public IMongoDatabase Database => Services.GetRequiredService<IMongoDatabase>();
@@ -64,11 +61,9 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
         {
             var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
             await context.Database.ExecuteSqlRawAsync(
-                @"TRUNCATE ""Users"", outbox_messages, outbox_message_consumers");
+                @"TRUNCATE ""Users"", carts, cart_items, outbox_messages, outbox_message_consumers");
         }
 
-        await Carts.Carts.DeleteManyAsync(FilterDefinition<CartDocument>.Empty);
-        await Carts.ProductTitles.DeleteManyAsync(FilterDefinition<ProductTitleDocument>.Empty);
         await Catalog.Products.DeleteManyAsync(FilterDefinition<ProductDocument>.Empty);
     }
 

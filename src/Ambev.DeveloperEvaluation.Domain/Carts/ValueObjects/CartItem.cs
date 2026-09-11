@@ -2,11 +2,23 @@ using Ambev.DeveloperEvaluation.Domain.Common;
 
 namespace Ambev.DeveloperEvaluation.Domain.Carts.ValueObjects;
 
-public sealed class CartItem(ProductRef product, Quantity quantity) : ValueObject
+public sealed class CartItem : ValueObject
 {
-    public ProductRef Product { get; } = product ?? throw new DomainException("Cart item requires a product reference.");
+    public ProductRef Product { get; }
 
-    public Quantity Quantity { get; } = quantity ?? throw new DomainException("Cart item requires a quantity.");
+    public Quantity Quantity { get; }
+
+    private CartItem()
+    {
+        Product = null!;
+        Quantity = null!;
+    }
+
+    public CartItem(ProductRef product, Quantity quantity)
+    {
+        Product = product ?? throw new DomainException("Cart item requires a product reference.");
+        Quantity = quantity ?? throw new DomainException("Cart item requires a quantity.");
+    }
 
     public CartItem WithQuantity(Quantity quantity) => new(Product, quantity);
 

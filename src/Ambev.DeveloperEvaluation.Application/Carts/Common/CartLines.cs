@@ -9,15 +9,15 @@ public static class CartLines
 {
     public static async Task<List<CartItem>> BuildAsync(
         IReadOnlyList<CartLineInput> lines,
-        IProductTitles productTitles,
+        IProductReader productReader,
         CancellationToken cancellationToken)
     {
         var ids = lines.Select(line => line.ProductId).Distinct().ToList();
-        var titles = await productTitles.ResolveAsync(ids, cancellationToken);
+        var products = await productReader.GetManyAsync(ids, cancellationToken);
 
         return lines
             .Select(line => new CartItem(
-                new ProductRef(line.ProductId, titles.GetValueOrDefault(line.ProductId)),
+                new ProductRef(line.ProductId, products.GetValueOrDefault(line.ProductId)?.Title),
                 new Quantity(line.Quantity)))
             .ToList();
     }

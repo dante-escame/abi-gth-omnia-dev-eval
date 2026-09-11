@@ -181,7 +181,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
     {
         using var scope = factory.Services.CreateScope();
         var queries = scope.ServiceProvider.GetRequiredService<ICartQueries>();
-        var executor = scope.ServiceProvider.GetRequiredService<IDocumentPagedQueryExecutor>();
+        var executor = scope.ServiceProvider.GetRequiredService<IPagedQueryExecutor>();
 
         var list = ListQueryParser.Parse(Parse(queryString));
 

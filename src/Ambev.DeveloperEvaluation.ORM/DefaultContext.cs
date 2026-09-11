@@ -1,4 +1,5 @@
-﻿using Ambev.DeveloperEvaluation.Domain.Entities;
+﻿using Ambev.DeveloperEvaluation.Domain.Carts;
+using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Sales;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.ORM.Sales;
@@ -14,6 +15,8 @@ public class DefaultContext(
     : DbContext(options)
 {
     public DbSet<User> Users { get; set; }
+
+    public DbSet<Cart> Carts { get; set; }
 
     public DbSet<Sale> Sales { get; set; }
 

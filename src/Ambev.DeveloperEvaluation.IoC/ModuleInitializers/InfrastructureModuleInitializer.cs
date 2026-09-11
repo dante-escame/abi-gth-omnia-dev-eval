@@ -1,14 +1,15 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Clock;
 using Ambev.DeveloperEvaluation.Application.Common.Lists;
+using Ambev.DeveloperEvaluation.Application.Acl;
 using Ambev.DeveloperEvaluation.Application.Ports;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.ORM.Clock;
 using Ambev.DeveloperEvaluation.ORM.Lists;
+using Ambev.DeveloperEvaluation.ORM.Carts;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.ORM.Repositories;
 using Ambev.DeveloperEvaluation.Persistence.Mongo;
-using Ambev.DeveloperEvaluation.Persistence.Mongo.Carts;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Lists;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Outbox;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Products;
@@ -30,6 +31,8 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddSingleton<OutboxInterceptor>();
         builder.Services.AddScoped<DbContext>(provider => provider.GetRequiredService<DefaultContext>());
         builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<ICartRepository, CartRepository>();
+        builder.Services.AddScoped<ICartQueries, CartQueries>();
         builder.Services.AddSingleton<IPagedQueryExecutor, PagedQueryExecutor>();
         builder.Services.AddScoped<IOutboxConsumerTracker, OutboxConsumerTracker>();
         builder.Services.AddSingleton<ProcessOutboxJob>();
@@ -47,15 +50,11 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddScoped<IProductRepository, MongoProductRepository>();
         builder.Services.AddScoped<IProductQueries, MongoProductQueries>();
         builder.Services.AddScoped<IProductEventReplay, MongoProductEventReplay>();
+        builder.Services.AddScoped<IProductReader, CatalogProductReader>();
         builder.Services.AddHostedService<ProductIndexInitializer>();
         builder.Services.Configure<CatalogOutboxOptions>(builder.Configuration.GetSection("CatalogOutbox"));
         builder.Services.AddSingleton<ProcessCatalogOutboxJob>();
         builder.Services.AddHostedService(provider => provider.GetRequiredService<ProcessCatalogOutboxJob>());
-        builder.Services.AddSingleton<CartContext>();
-        builder.Services.AddScoped<IProductTitles, MongoProductTitles>();
-        builder.Services.AddScoped<ICartRepository, MongoCartRepository>();
-        builder.Services.AddScoped<ICartQueries, MongoCartQueries>();
-        builder.Services.AddHostedService<CartIndexInitializer>();
         builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>(
             "MongoDB",
             failureStatus: HealthStatus.Unhealthy,

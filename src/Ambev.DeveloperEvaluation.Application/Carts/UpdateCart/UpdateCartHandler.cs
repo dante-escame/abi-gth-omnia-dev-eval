@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Carts.UpdateCart;
 
-public sealed class UpdateCartHandler(ICartRepository cartRepository, IProductTitles productTitles)
+public sealed class UpdateCartHandler(ICartRepository cartRepository, IProductReader productReader)
     : IRequestHandler<UpdateCartCommand, Result<CartResult>>
 {
     public async Task<Result<CartResult>> Handle(UpdateCartCommand command, CancellationToken cancellationToken)
@@ -20,7 +20,7 @@ public sealed class UpdateCartHandler(ICartRepository cartRepository, IProductTi
         if (cart.Status != CartStatus.Active)
             return Result.Failure<CartResult>(CartErrors.AlreadyCheckedOut(command.Id));
 
-        var items = await CartLines.BuildAsync(command.Products, productTitles, cancellationToken);
+        var items = await CartLines.BuildAsync(command.Products, productReader, cancellationToken);
 
         cart.ReplaceItems(items);
 
