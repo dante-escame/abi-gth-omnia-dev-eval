@@ -22,6 +22,8 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(c => c.SaleId).HasColumnName("sale_id");
+        builder.Property(c => c.CheckedOutAt).HasColumnName("checked_out_at");
         builder.Property(c => c.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(c => c.UpdatedAt).HasColumnName("updated_at");
 

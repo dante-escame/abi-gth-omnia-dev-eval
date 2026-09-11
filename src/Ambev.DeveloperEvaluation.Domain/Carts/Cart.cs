@@ -12,6 +12,10 @@ public class Cart : AggregateRoot
 
     public CartStatus Status { get; private set; }
 
+    public Guid? SaleId { get; private set; }
+
+    public DateTime? CheckedOutAt { get; private set; }
+
     public IReadOnlyList<CartItem> Items => _items.AsReadOnly();
 
     public DateTime CreatedAt { get; private set; }
@@ -57,6 +61,20 @@ public class Cart : AggregateRoot
         cart._items.AddRange(Merge(items));
 
         return cart;
+    }
+
+    public void MarkCheckedOut(Guid saleId)
+    {
+        if (Status == CartStatus.CheckedOut)
+            return;
+
+        if (saleId == Guid.Empty)
+            throw new DomainException("A checkout requires a sale.");
+
+        Status = CartStatus.CheckedOut;
+        SaleId = saleId;
+        CheckedOutAt = DateTime.UtcNow;
+        Touch();
     }
 
     public void ReplaceItems(IEnumerable<CartItem> items)

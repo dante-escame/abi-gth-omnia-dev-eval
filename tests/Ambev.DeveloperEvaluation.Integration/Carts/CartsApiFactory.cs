@@ -61,7 +61,7 @@ public sealed class CartsApiFactory : WebApplicationFactory<Program>, IAsyncLife
         {
             var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
             await context.Database.ExecuteSqlRawAsync(
-                @"TRUNCATE ""Users"", carts, cart_items, outbox_messages, outbox_message_consumers");
+                @"TRUNCATE ""Users"", carts, cart_items, sales, sale_items, outbox_messages, outbox_message_consumers");
         }
 
         await Catalog.Products.DeleteManyAsync(FilterDefinition<ProductDocument>.Empty);

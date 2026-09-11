@@ -5,6 +5,7 @@ using Ambev.DeveloperEvaluation.Application.Common.Lists;
 using Ambev.DeveloperEvaluation.Application.Ports;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Domain.Sales.Services;
 using Ambev.DeveloperEvaluation.ORM.Repositories;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.ORM.Clock;
@@ -68,6 +69,12 @@ public sealed class OutboxFixture : IAsyncLifetime
         services.AddSingleton(Substitute.For<IProductEventReplay>());
         services.AddSingleton(Substitute.For<ICartRepository>());
         services.AddSingleton(Substitute.For<ICartQueries>());
+        services.AddSingleton(Substitute.For<ISaleRepository>());
+        services.AddSingleton(Substitute.For<ISaleQueries>());
+        services.AddSingleton(Substitute.For<ISaleNumberGenerator>());
+        services.AddSingleton(Substitute.For<IBranchDirectory>());
+        services.AddSingleton(Substitute.For<IUnitOfWork>());
+        services.AddSingleton<IDiscountPolicy, TieredDiscountPolicy>();
         services.AddSingleton<ProcessOutboxJob>();
 
         Services = services.BuildServiceProvider(new ServiceProviderOptions

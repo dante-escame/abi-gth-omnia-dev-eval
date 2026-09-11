@@ -14,7 +14,7 @@ public class SaleItemConfiguration : IEntityTypeConfiguration<SaleItem>
         builder.HasKey(i => i.Id);
         builder.Property(i => i.Id).HasColumnType("uuid").ValueGeneratedNever();
 
-        builder.Property<Guid>("SaleId").HasColumnName("sale_id");
+        builder.Property<Guid>(SaleConfiguration.ItemForeignKey).HasColumnName("sale_id");
 
         builder.Property(i => i.Quantity)
             .HasConversion(SaleValueConverters.QuantityConverter)

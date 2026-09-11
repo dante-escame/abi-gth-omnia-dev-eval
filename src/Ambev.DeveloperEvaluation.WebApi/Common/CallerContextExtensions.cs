@@ -12,7 +12,10 @@ public static class CallerContextExtensions
             ? parsed
             : UserRole.Customer;
 
-        return new CallerContext(principal.CurrentUserId(), role);
+        var userId = principal.CurrentUserId();
+        var name = principal.FindFirstValue(ClaimTypes.Name);
+
+        return new CallerContext(userId, role, string.IsNullOrWhiteSpace(name) ? userId.ToString() : name);
     }
 
     public static Guid CurrentUserId(this ClaimsPrincipal principal) =>
