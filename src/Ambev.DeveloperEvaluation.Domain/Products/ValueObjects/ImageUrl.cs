@@ -10,11 +10,16 @@ public sealed class ImageUrl : ValueObject
     {
         if (string.IsNullOrWhiteSpace(value))
             throw new DomainException("Product image is required.");
-        if (!Uri.TryCreate(value.Trim(), UriKind.Absolute, out _))
-            throw new DomainException("Product image must be a valid absolute URL.");
+        if (!IsValid(value))
+            throw new DomainException("Product image must be an absolute http or https URL.");
 
         Value = value.Trim();
     }
+
+    public static bool IsValid(string? value) =>
+        !string.IsNullOrWhiteSpace(value)
+        && Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri)
+        && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
     protected override IEnumerable<object?> GetEqualityComponents()
     {

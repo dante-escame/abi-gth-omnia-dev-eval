@@ -13,6 +13,7 @@ using Ambev.DeveloperEvaluation.Persistence.Mongo.Products;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
@@ -44,5 +45,10 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddScoped<IProductRepository, MongoProductRepository>();
         builder.Services.AddScoped<IProductQueries, MongoProductQueries>();
         builder.Services.AddHostedService<ProductIndexInitializer>();
+        builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>(
+            "MongoDB",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["readiness"],
+            timeout: TimeSpan.FromSeconds(5));
     }
 }
