@@ -192,6 +192,7 @@ public class Sale : AggregateRoot
 
         Raise(new ItemCancelledDomainEvent(
             Id,
+            Number.Value,
             item.Id,
             item.Product.Id,
             item.Product.Title,

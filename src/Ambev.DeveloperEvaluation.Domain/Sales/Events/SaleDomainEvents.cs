@@ -53,6 +53,7 @@ public sealed record SaleCancelledDomainEvent(
 
 public sealed record ItemCancelledDomainEvent(
     Guid SaleId,
+    string SaleNumber,
     Guid ItemId,
     Guid ProductId,
     string Title,

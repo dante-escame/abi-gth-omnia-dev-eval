@@ -13,6 +13,7 @@ using Ambev.DeveloperEvaluation.ORM.Lists;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using MediatR;
 using NSubstitute;
+using Rebus.Bus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -74,6 +75,7 @@ public sealed class OutboxFixture : IAsyncLifetime
         services.AddSingleton(Substitute.For<ISaleNumberGenerator>());
         services.AddSingleton(Substitute.For<IBranchDirectory>());
         services.AddSingleton(Substitute.For<IUnitOfWork>());
+        services.AddSingleton(Substitute.For<IBus>());
         services.AddSingleton<IDiscountPolicy, TieredDiscountPolicy>();
         services.AddSingleton<ProcessOutboxJob>();
 

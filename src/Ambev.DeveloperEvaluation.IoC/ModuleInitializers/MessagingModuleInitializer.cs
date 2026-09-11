@@ -1,4 +1,5 @@
 using Ambev.DeveloperEvaluation.Catalog.IntegrationEvents;
+using Ambev.DeveloperEvaluation.Sales.IntegrationEvents;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Rebus.Config;
@@ -18,6 +19,8 @@ public class MessagingModuleInitializer : IModuleInitializer
         builder.Services.AddRebus(configure => configure
             .Logging(logging => logging.None())
             .Transport(transport => transport.UseInMemoryTransport(network, InputQueue))
-            .Routing(routing => routing.TypeBased().MapAssemblyOf<ProductCreatedIntegrationEvent>(InputQueue)));
+            .Routing(routing => routing.TypeBased()
+                .MapAssemblyOf<ProductCreatedIntegrationEvent>(InputQueue)
+                .MapAssemblyOf<SaleCreatedIntegrationEvent>(InputQueue)));
     }
 }
