@@ -7,52 +7,67 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Carts.ValueObjects;
 
 public class CartItemTests
 {
-    [Fact(DisplayName = "Cart items with the same product and quantity are equal")]
-    public void Given_SameComponents_When_Compared_Then_IsEqual()
+    [Fact]
+    public void Two_Cart_Items_With_The_Same_Product_And_Quantity_Are_Equal()
     {
+        // Arrange
         var product = CartTestData.ProductRef();
 
+        // Act
         var left = new CartItem(product, new Quantity(3));
         var right = new CartItem(new ProductRef(product.Id, product.Title), new Quantity(3));
 
+        // Assert
         left.Should().Be(right);
         left.GetHashCode().Should().Be(right.GetHashCode());
     }
 
-    [Fact(DisplayName = "Cart items differing in quantity are not equal")]
-    public void Given_DifferentQuantity_When_Compared_Then_IsNotEqual()
+    [Fact]
+    public void Two_Cart_Items_Differing_In_Quantity_Are_Not_Equal()
     {
+        // Arrange
         var product = CartTestData.ProductRef();
 
-        new CartItem(product, new Quantity(3)).Should().NotBe(new CartItem(product, new Quantity(4)));
+        // Act
+        var left = new CartItem(product, new Quantity(3));
+
+        // Assert
+        left.Should().NotBe(new CartItem(product, new Quantity(4)));
     }
 
-    [Fact(DisplayName = "Replacing the quantity leaves the original item untouched")]
-    public void Given_Item_When_QuantityReplaced_Then_ReturnsNewInstance()
+    [Fact]
+    public void Replacing_The_Quantity_Leaves_The_Original_Item_Untouched()
     {
+        // Arrange
         var item = CartTestData.Item(quantity: 2);
 
+        // Act
         var replaced = item.WithQuantity(new Quantity(9));
 
+        // Assert
         replaced.Should().NotBeSameAs(item);
         replaced.Product.Should().Be(item.Product);
         replaced.Quantity.Value.Should().Be(9);
         item.Quantity.Value.Should().Be(2);
     }
 
-    [Fact(DisplayName = "A cart item without a product reference throws")]
-    public void Given_NoProduct_When_Created_Then_Throws()
+    [Fact]
+    public void Constructing_A_Cart_Item_Without_A_Product_Reference_Throws()
     {
+        // Act
         var act = () => new CartItem(null!, new Quantity(1));
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Fact(DisplayName = "A cart item without a quantity throws")]
-    public void Given_NoQuantity_When_Created_Then_Throws()
+    [Fact]
+    public void Constructing_A_Cart_Item_Without_A_Quantity_Throws()
     {
+        // Act
         var act = () => new CartItem(CartTestData.ProductRef(), null!);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 }

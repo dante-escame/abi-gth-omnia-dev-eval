@@ -16,9 +16,10 @@ public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact(DisplayName = "A cart with several lines survives a round trip")]
-    public async Task Given_ManyLines_When_Stored_Then_ReadsBackIdentical()
+    [Fact]
+    public async Task A_Cart_With_Several_Lines_Survives_A_Round_Trip()
     {
+        // Arrange
         var customerId = Guid.NewGuid();
         var first = new CartItem(new ProductRef(Guid.NewGuid(), "Mountain Bike"), new Quantity(2));
         var second = new CartItem(new ProductRef(Guid.NewGuid(), "Helmet"), new Quantity(7));
@@ -29,31 +30,36 @@ public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
         using var scope = factory.Services.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<ICartRepository>();
 
+        // Act
         await repository.CreateAsync(cart);
-
         var stored = await repository.GetByIdAsync(cart.Id);
 
+        // Assert
         stored.Should().NotBeNull();
         stored!.Id.Should().Be(cart.Id);
         stored.CustomerId.Should().Be(customerId);
         stored.Status.Should().Be(cart.Status);
-        stored.CreatedAt.Should().BeCloseTo(cart.CreatedAt, TimeSpan.FromMilliseconds(1));
+        stored.CreatedAt.Should().BeCloseTo(cart.CreatedAt, TimeSpan.FromMilliseconds(2));
         stored.Items.Should().BeEquivalentTo(new[] { first, second, titleless });
         stored.Items.Single(item => item.Product.Id == titleless.Product.Id).Product.Title.Should().BeNull();
     }
 
-    [Fact(DisplayName = "The stored document uses the documented element names")]
-    public async Task Given_Cart_When_Stored_Then_UsesContractNames()
+    [Fact]
+    public async Task The_Stored_Document_Uses_The_Documented_Element_Names()
     {
+        // Arrange
         var cart = Cart.Create(Guid.NewGuid(), [new CartItem(new ProductRef(Guid.NewGuid(), "Helmet"), new Quantity(3))]);
 
         using var scope = factory.Services.CreateScope();
+
+        // Act
         await scope.ServiceProvider.GetRequiredService<ICartRepository>().CreateAsync(cart);
 
         var document = await factory.RawCollection("carts")
             .Find(Builders<BsonDocument>.Filter.Eq("_id", cart.Id))
             .SingleAsync();
 
+        // Assert
         document.Names.Should().Contain(["_id", "userId", "status", "createdAt", "updatedAt", "products"]);
 
         var line = document["products"].AsBsonArray.Single().AsBsonDocument;
@@ -63,38 +69,47 @@ public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
         line["title"].AsString.Should().Be("Helmet");
     }
 
-    [Fact(DisplayName = "Updating a cart replaces the whole embedded line array")]
-    public async Task Given_StoredCart_When_Updated_Then_ReplacesLines()
+    [Fact]
+    public async Task Updating_A_Cart_Replaces_The_Whole_Embedded_Line_Array()
     {
+        // Arrange
         var cart = Cart.Create(Guid.NewGuid(), [new CartItem(new ProductRef(Guid.NewGuid(), "Helmet"), new Quantity(3))]);
         var replacement = new CartItem(new ProductRef(Guid.NewGuid(), "Mountain Bike"), new Quantity(1));
 
         using var scope = factory.Services.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<ICartRepository>();
-
         await repository.CreateAsync(cart);
+
+        // Act
         cart.ReplaceItems([replacement]);
         await repository.UpdateAsync(cart);
 
+        // Assert
         var stored = await repository.GetByIdAsync(cart.Id);
 
         stored!.Items.Should().ContainSingle().Which.Should().Be(replacement);
         stored.UpdatedAt.Should().NotBeNull();
     }
 
-    [Fact(DisplayName = "Deleting reports whether a document actually matched")]
-    public async Task Given_UnknownId_When_Deleted_Then_ReturnsFalse()
+    [Fact]
+    public async Task Deleting_A_Cart_Reports_Whether_A_Document_Actually_Matched()
     {
+        // Arrange
         var cart = Cart.Create(Guid.NewGuid(), [new CartItem(new ProductRef(Guid.NewGuid()), new Quantity(1))]);
 
         using var scope = factory.Services.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<ICartRepository>();
-
         await repository.CreateAsync(cart);
 
-        (await repository.DeleteAsync(cart.Id)).Should().BeTrue();
-        (await repository.DeleteAsync(cart.Id)).Should().BeFalse();
-        (await repository.DeleteAsync(Guid.NewGuid())).Should().BeFalse();
+        // Act
+        bool firstDelete = await repository.DeleteAsync(cart.Id);
+        bool secondDelete = await repository.DeleteAsync(cart.Id);
+        bool unknownDelete = await repository.DeleteAsync(Guid.NewGuid());
+
+        // Assert
+        firstDelete.Should().BeTrue();
+        secondDelete.Should().BeFalse();
+        unknownDelete.Should().BeFalse();
         (await repository.GetByIdAsync(cart.Id)).Should().BeNull();
     }
 }

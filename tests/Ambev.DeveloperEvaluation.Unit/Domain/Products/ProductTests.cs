@@ -9,15 +9,18 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Products;
 
 public class ProductTests
 {
-    [Fact(DisplayName = "Creating a product produces a valid aggregate")]
-    public void Given_ValidValues_When_Created_Then_IsPopulated()
+    [Fact]
+    public void Creating_A_Product_From_Valid_Values_Populates_The_Aggregate()
     {
+        // Arrange
         var title = ProductTestData.Title();
         var price = ProductTestData.Price();
         var category = ProductTestData.Category();
 
+        // Act
         var product = Product.Create(title, price, "A description", category, ProductTestData.Image(), ProductTestData.Rating());
 
+        // Assert
         product.Id.Should().NotBeEmpty();
         product.Title.Should().Be(title);
         product.Price.Should().Be(price);
@@ -27,74 +30,89 @@ public class ProductTests
         product.UpdatedAt.Should().BeNull();
     }
 
-    [Fact(DisplayName = "Creating a product raises the created event")]
-    public void Given_NewProduct_When_Created_Then_RaisesCreated()
+    [Fact]
+    public void Creating_A_Product_Raises_The_Created_Event()
     {
+        // Act
         var product = ProductTestData.Product();
 
+        // Assert
         product.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<ProductCreatedDomainEvent>()
             .Which.Title.Should().Be(product.Title.Value);
     }
 
-    [Fact(DisplayName = "Updating details raises exactly one updated event")]
-    public void Given_Product_When_DetailsUpdated_Then_RaisesOneUpdated()
+    [Fact]
+    public void Updating_The_Details_Raises_Exactly_One_Updated_Event()
     {
+        // Arrange
         var product = ProductTestData.Product();
         product.ClearDomainEvents();
 
+        // Act
         product.UpdateDetails(
             new ProductTitle("Renamed Backpack"),
             null,
             ProductTestData.Category(),
             ProductTestData.Image());
 
+        // Assert
         product.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<ProductUpdatedDomainEvent>()
             .Which.Title.Should().Be("Renamed Backpack");
     }
 
-    [Fact(DisplayName = "Deleting a product raises the deleted event")]
-    public void Given_Product_When_Deleted_Then_RaisesDeleted()
+    [Fact]
+    public void Deleting_A_Product_Raises_The_Deleted_Event()
     {
+        // Arrange
         var product = ProductTestData.Product();
         product.ClearDomainEvents();
 
+        // Act
         product.Delete();
 
+        // Assert
         product.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<ProductDeletedDomainEvent>()
             .Which.ProductId.Should().Be(product.Id);
     }
 
-    [Fact(DisplayName = "Repricing raises no event because the replica only tracks titles")]
-    public void Given_Product_When_Repriced_Then_RaisesNothing()
+    [Fact]
+    public void Repricing_A_Product_Raises_No_Event_Because_The_Replica_Only_Tracks_Titles()
     {
+        // Arrange
         var product = ProductTestData.Product();
         product.ClearDomainEvents();
 
+        // Act
         product.Reprice(new Money(12.34m));
 
+        // Assert
         product.DomainEvents.Should().BeEmpty();
     }
 
-    [Fact(DisplayName = "Setting a rating raises no event because the replica only tracks titles")]
-    public void Given_Product_When_RatingSet_Then_RaisesNothing()
+    [Fact]
+    public void Rating_A_Product_Raises_No_Event_Because_The_Replica_Only_Tracks_Titles()
     {
+        // Arrange
         var product = ProductTestData.Product();
         product.ClearDomainEvents();
 
+        // Act
         product.SetRating(new Rating(3.1m, 12));
 
+        // Assert
         product.DomainEvents.Should().BeEmpty();
     }
 
-    [Theory(DisplayName = "Missing description is normalized to empty")]
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Given_BlankDescription_When_Created_Then_IsEmpty(string? description)
+    public void Creating_A_Product_Without_A_Description_Normalizes_It_To_Empty(string? description)
     {
+        // Act
         var product = Product.Create(
             ProductTestData.Title(),
             ProductTestData.Price(),
@@ -103,12 +121,14 @@ public class ProductTests
             ProductTestData.Image(),
             ProductTestData.Rating());
 
+        // Assert
         product.Description.Should().BeEmpty();
     }
 
-    [Fact(DisplayName = "Creating a product without a required value object throws")]
-    public void Given_MissingValueObject_When_Created_Then_Throws()
+    [Fact]
+    public void Creating_A_Product_Without_A_Required_Value_Object_Throws()
     {
+        // Act
         var act = () => Product.Create(
             null!,
             ProductTestData.Price(),
@@ -117,44 +137,54 @@ public class ProductTests
             ProductTestData.Image(),
             ProductTestData.Rating());
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Fact(DisplayName = "Repricing replaces the price and stamps the update time")]
-    public void Given_Product_When_Repriced_Then_UpdatesPriceAndTimestamp()
+    [Fact]
+    public void Repricing_A_Product_Replaces_The_Price_And_Stamps_The_Update_Time()
     {
+        // Arrange
         var product = ProductTestData.Product();
         var price = new Money(199.90m);
 
+        // Act
         product.Reprice(price);
 
+        // Assert
         product.Price.Should().Be(price);
         product.UpdatedAt.Should().NotBeNull().And.BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
-    [Fact(DisplayName = "Setting a rating replaces it and stamps the update time")]
-    public void Given_Product_When_RatingSet_Then_UpdatesRatingAndTimestamp()
+    [Fact]
+    public void Rating_A_Product_Replaces_The_Rating_And_Stamps_The_Update_Time()
     {
+        // Arrange
         var product = ProductTestData.Product();
         var rating = new Rating(4.2m, 200);
 
+        // Act
         product.SetRating(rating);
 
+        // Assert
         product.Rating.Should().Be(rating);
         product.UpdatedAt.Should().NotBeNull();
     }
 
-    [Fact(DisplayName = "Updating details replaces the descriptive fields and keeps the price")]
-    public void Given_Product_When_DetailsUpdated_Then_KeepsPrice()
+    [Fact]
+    public void Updating_The_Details_Replaces_The_Descriptive_Fields_And_Keeps_The_Price()
     {
+        // Arrange
         var product = ProductTestData.Product();
         var price = product.Price;
         var title = new ProductTitle("Updated Backpack");
         var category = new Category("Accessories");
         var image = new ImageUrl("https://example.test/updated.png");
 
+        // Act
         product.UpdateDetails(title, "  Bigger bag  ", category, image);
 
+        // Assert
         product.Title.Should().Be(title);
         product.Category.Should().Be(category);
         product.Image.Should().Be(image);
@@ -163,23 +193,28 @@ public class ProductTests
         product.UpdatedAt.Should().NotBeNull();
     }
 
-    [Fact(DisplayName = "Mutating with a missing value object throws")]
-    public void Given_Product_When_RepricedWithNothing_Then_Throws()
+    [Fact]
+    public void Mutating_A_Product_With_A_Missing_Value_Object_Throws()
     {
+        // Arrange
         var product = ProductTestData.Product();
 
+        // Act
         var act = () => product.Reprice(null!);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Fact(DisplayName = "Restoring a product keeps its identity and timestamps")]
-    public void Given_StoredValues_When_Restored_Then_KeepsIdentity()
+    [Fact]
+    public void Restoring_A_Product_Keeps_Its_Identity_And_Timestamps()
     {
+        // Arrange
         var id = Guid.NewGuid();
         var createdAt = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
         var updatedAt = createdAt.AddDays(1);
 
+        // Act
         var product = Product.Restore(
             id,
             ProductTestData.Title(),
@@ -191,6 +226,7 @@ public class ProductTests
             createdAt,
             updatedAt);
 
+        // Assert
         product.Id.Should().Be(id);
         product.CreatedAt.Should().Be(createdAt);
         product.UpdatedAt.Should().Be(updatedAt);

@@ -6,41 +6,61 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Users.ValueObjects;
 
 public class EmailTests
 {
-    [Theory(DisplayName = "Invalid email is rejected on construction")]
+    [Theory]
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("not-an-email")]
     [InlineData("missing@domain")]
     [InlineData("@nolocal.com")]
-    public void Given_InvalidValue_When_Constructed_Then_Throws(string value)
+    public void Constructing_An_Email_From_An_Invalid_Value_Throws(string value)
     {
+        // Act
         var act = () => new Email(value);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Theory(DisplayName = "Valid email is accepted")]
+    [Theory]
     [InlineData("user@example.com")]
     [InlineData("first.last+tag@sub.example.co")]
-    public void Given_ValidValue_When_Constructed_Then_KeepsValue(string value)
+    public void Constructing_An_Email_From_A_Valid_Value_Keeps_The_Value(string value)
     {
-        new Email(value).Value.Should().Be(value);
+        // Act
+        var email = new Email(value);
+
+        // Assert
+        email.Value.Should().Be(value);
     }
 
-    [Fact(DisplayName = "Emails with the same value are structurally equal")]
-    public void Given_SameValue_When_Compared_Then_Equal()
+    [Fact]
+    public void Two_Emails_With_The_Same_Value_Are_Equal()
     {
+        // Arrange
         var a = new Email("user@example.com");
         var b = new Email("user@example.com");
 
+        // Act
+        bool equal = a == b;
+
+        // Assert
         a.Should().Be(b);
-        (a == b).Should().BeTrue();
+        equal.Should().BeTrue();
         a.GetHashCode().Should().Be(b.GetHashCode());
     }
 
-    [Fact(DisplayName = "Emails with different values are not equal")]
-    public void Given_DifferentValue_When_Compared_Then_NotEqual()
+    [Fact]
+    public void Two_Emails_With_Different_Values_Are_Not_Equal()
     {
-        new Email("a@example.com").Should().NotBe(new Email("b@example.com"));
+        // Arrange
+        var a = new Email("a@example.com");
+        var b = new Email("b@example.com");
+
+        // Act
+        bool equal = a == b;
+
+        // Assert
+        a.Should().NotBe(b);
+        equal.Should().BeFalse();
     }
 }

@@ -21,25 +21,29 @@ public class CatalogReplicationTests(CartsApiFactory factory) : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact(DisplayName = "Creating a product raises an event inside the document until a catalog cycle happens")]
-    public async Task Given_CreatedProduct_When_CycleRuns_Then_DrainsPendingEvents()
+    [Fact]
+    public async Task Creating_A_Product_Parks_An_Event_Inside_The_Document_Until_A_Cycle_Runs()
     {
+        // Arrange
         var (manager, _) = await factory.SignInAsync(UserRole.Manager);
-
         var productId = await manager.CreateProductAsync("Mountain Bike");
 
         var pending = await ProductAsync(productId);
         pending.PendingEvents.Should().ContainSingle()
             .Which.Type.Should().EndWith(nameof(ProductCreatedDomainEvent));
 
-        (await factory.RunOutboxCycleAsync()).Should().Be(1);
+        // Act
+        int published = await factory.RunOutboxCycleAsync();
 
+        // Assert
+        published.Should().Be(1);
         (await ProductAsync(productId)).PendingEvents.Should().BeEmpty();
     }
 
-    [Fact(DisplayName = "A rename reaches the cart line through the bus")]
-    public async Task Given_RenamedProduct_When_CartWritten_Then_CarriesTheNewTitle()
+    [Fact]
+    public async Task A_Rename_Reaches_The_Cart_Line_Through_The_Bus()
     {
+        // Arrange
         var (manager, _) = await factory.SignInAsync(UserRole.Manager);
         var (customer, _) = await factory.SignInAsync(UserRole.Customer);
 
@@ -50,6 +54,7 @@ public class CatalogReplicationTests(CartsApiFactory factory) : IAsyncLifetime
         var created = await customer.CreateCartAsync((productId, 2));
         TitleOf(created, productId).Should().Be("Mountain Bike");
 
+        // Act
         await manager.RenameProductAsync(productId, "Racing Bike");
         await factory.RunOutboxCycleAsync();
         await WaitForTitleAsync(productId, "Racing Bike");
@@ -58,23 +63,28 @@ public class CatalogReplicationTests(CartsApiFactory factory) : IAsyncLifetime
             $"/api/carts/{created.GetProperty("id").GetString()}",
             CartsTestClient.CartBody((productId, 3)));
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var updated = await response.Content.ReadFromJsonAsync<JsonElement>();
         TitleOf(updated, productId).Should().Be("Racing Bike");
     }
 
-    [Fact(DisplayName = "A delete keeps a tombstone until its event is published, then clears the replica")]
-    public async Task Given_DeletedProduct_When_CycleRuns_Then_RemovesDocumentAndTitle()
+    [Fact]
+    public async Task A_Delete_Keeps_A_Tombstone_Until_Its_Event_Is_Published_Then_Clears_The_Replica()
     {
+        // Arrange
         var (manager, _) = await factory.SignInAsync(UserRole.Manager);
 
         var productId = await manager.CreateProductAsync("Helmet");
         await factory.RunOutboxCycleAsync();
         await WaitForTitleAsync(productId, "Helmet");
 
-        (await manager.DeleteAsync($"/api/products/{productId}")).StatusCode
-            .Should().Be(HttpStatusCode.NoContent);
+        // Act
+        var deleted = await manager.DeleteAsync($"/api/products/{productId}");
+
+        // Assert
+        deleted.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var tombstone = await ProductAsync(productId);
         tombstone.DeletedAt.Should().NotBeNull();
@@ -89,28 +99,35 @@ public class CatalogReplicationTests(CartsApiFactory factory) : IAsyncLifetime
         await WaitForTitleAsync(productId, null);
     }
 
-    [Fact(DisplayName = "A product the replica never heard of yields a line with no title")]
-    public async Task Given_UnknownProduct_When_CartCreated_Then_TitleIsNull()
+    [Fact]
+    public async Task A_Product_The_Replica_Never_Heard_Of_Yields_A_Line_With_No_Title()
     {
+        // Arrange
         var (customer, _) = await factory.SignInAsync(UserRole.Customer);
         var productId = Guid.NewGuid();
 
+        // Act
         var created = await customer.CreateCartAsync((productId, 1));
 
+        // Assert
         created.GetProperty("products").EnumerateArray().Single()
             .GetProperty("title").ValueKind.Should().Be(JsonValueKind.Null);
     }
 
-    [Fact(DisplayName = "The replica keeps the newest snapshot whatever order the events arrive in")]
-    public async Task Given_OutOfOrderEvents_When_Applied_Then_KeepsTheNewest()
+    [Fact]
+    public async Task The_Replica_Keeps_The_Newest_Snapshot_Whatever_Order_The_Events_Arrive_In()
     {
+        // Arrange
         var productId = Guid.NewGuid();
         var occurredOn = DateTime.UtcNow;
 
         using var scope = factory.Services.CreateScope();
         var replica = scope.ServiceProvider.GetRequiredService<IProductTitles>();
 
+        // Act
         await replica.UpsertAsync(productId, "Mountain Bike", occurredOn);
+
+        // Assert
         (await TitleAsync(replica, productId)).Should().Be("Mountain Bike");
 
         await replica.UpsertAsync(productId, "Racing Bike", occurredOn.AddMinutes(5));

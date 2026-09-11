@@ -21,91 +21,112 @@ public class ProductTitleReplicationTests
         _remove = new RemoveProductTitleHandler(_replica);
     }
 
-    [Fact(DisplayName = "A newer event overwrites the stored title")]
-    public async Task Given_NewerEvent_When_Handled_Then_Overwrites()
+    [Fact]
+    public async Task An_Event_Newer_Than_The_Stored_Snapshot_Overwrites_The_Title()
     {
+        // Arrange
         var productId = CatalogEventTestData.ProductId();
         var first = CatalogEventTestData.OccurredOn();
-
         await UpsertAsync(productId, "Mountain Bike", first);
+
+        // Act
         await UpsertAsync(productId, "Racing Bike", first.AddMinutes(5));
 
+        // Assert
         (await _replica.TitleOfAsync(productId)).Should().Be("Racing Bike");
     }
 
-    [Fact(DisplayName = "An event older than the stored snapshot is ignored")]
-    public async Task Given_OlderEvent_When_Handled_Then_KeepsStoredTitle()
+    [Fact]
+    public async Task An_Event_Older_Than_The_Stored_Snapshot_Is_Ignored()
     {
+        // Arrange
         var productId = CatalogEventTestData.ProductId();
         var current = CatalogEventTestData.OccurredOn();
-
         await UpsertAsync(productId, "Racing Bike", current);
+
+        // Act
         await UpsertAsync(productId, "Mountain Bike", current.AddMinutes(-5));
 
+        // Assert
         (await _replica.TitleOfAsync(productId)).Should().Be("Racing Bike");
     }
 
-    [Fact(DisplayName = "A redelivered event leaves the replica exactly as it was")]
-    public async Task Given_RedeliveredEvent_When_Handled_Then_ChangesNothing()
+    [Fact]
+    public async Task A_Redelivered_Event_Leaves_The_Replica_Exactly_As_It_Was()
     {
+        // Arrange
         var productId = CatalogEventTestData.ProductId();
         var occurredOn = CatalogEventTestData.OccurredOn();
-
-        await UpsertAsync(productId, "Mountain Bike", occurredOn);
-        await UpsertAsync(productId, "Mountain Bike", occurredOn);
         await UpsertAsync(productId, "Mountain Bike", occurredOn);
 
+        // Act
+        await UpsertAsync(productId, "Mountain Bike", occurredOn);
+        await UpsertAsync(productId, "Mountain Bike", occurredOn);
+
+        // Assert
         (await _replica.TitleOfAsync(productId)).Should().Be("Mountain Bike");
     }
 
-    [Fact(DisplayName = "A removal clears the title so later cart lines resolve to nothing")]
-    public async Task Given_Removal_When_Handled_Then_TitleIsGone()
+    [Fact]
+    public async Task A_Removal_Clears_The_Title_So_Later_Cart_Lines_Resolve_To_Nothing()
     {
+        // Arrange
         var productId = CatalogEventTestData.ProductId();
         var occurredOn = CatalogEventTestData.OccurredOn();
-
         await UpsertAsync(productId, "Mountain Bike", occurredOn);
+
+        // Act
         await _remove.Handle(new RemoveProductTitleCommand(productId, occurredOn.AddMinutes(1)), default);
 
+        // Assert
         (await _replica.TitleOfAsync(productId)).Should().BeNull();
     }
 
-    [Fact(DisplayName = "A removal older than the stored snapshot is ignored")]
-    public async Task Given_OlderRemoval_When_Handled_Then_KeepsStoredTitle()
+    [Fact]
+    public async Task A_Removal_Older_Than_The_Stored_Snapshot_Is_Ignored()
     {
+        // Arrange
         var productId = CatalogEventTestData.ProductId();
         var occurredOn = CatalogEventTestData.OccurredOn();
-
         await UpsertAsync(productId, "Mountain Bike", occurredOn);
+
+        // Act
         await _remove.Handle(new RemoveProductTitleCommand(productId, occurredOn.AddMinutes(-1)), default);
 
+        // Assert
         (await _replica.TitleOfAsync(productId)).Should().Be("Mountain Bike");
     }
 
-    [Fact(DisplayName = "The upsert handler forwards the event time untouched")]
-    public async Task Given_Command_When_Handled_Then_ForwardsEventTime()
+    [Fact]
+    public async Task The_Upsert_Handler_Forwards_The_Event_Time_Untouched()
     {
+        // Arrange
         var titles = Substitute.For<IProductTitles>();
         var productId = CatalogEventTestData.ProductId();
         string title = CatalogEventTestData.Title();
         var occurredOn = CatalogEventTestData.OccurredOn();
 
+        // Act
         await new UpsertProductTitleHandler(titles)
             .Handle(new UpsertProductTitleCommand(productId, title, occurredOn), default);
 
+        // Assert
         await titles.Received(1).UpsertAsync(productId, title, occurredOn, Arg.Any<CancellationToken>());
     }
 
-    [Fact(DisplayName = "The removal handler forwards the event time untouched")]
-    public async Task Given_RemovalCommand_When_Handled_Then_ForwardsEventTime()
+    [Fact]
+    public async Task The_Removal_Handler_Forwards_The_Event_Time_Untouched()
     {
+        // Arrange
         var titles = Substitute.For<IProductTitles>();
         var productId = CatalogEventTestData.ProductId();
         var occurredOn = CatalogEventTestData.OccurredOn();
 
+        // Act
         await new RemoveProductTitleHandler(titles)
             .Handle(new RemoveProductTitleCommand(productId, occurredOn), default);
 
+        // Assert
         await titles.Received(1).RemoveAsync(productId, occurredOn, Arg.Any<CancellationToken>());
     }
 

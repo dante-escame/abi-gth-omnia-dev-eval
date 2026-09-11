@@ -9,14 +9,17 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Carts;
 
 public class CartTests
 {
-    [Fact(DisplayName = "Creating a cart produces an active aggregate owned by the customer")]
-    public void Given_ValidLines_When_Created_Then_IsActive()
+    [Fact]
+    public void Creating_A_Cart_Produces_An_Active_Aggregate_Owned_By_The_Customer()
     {
+        // Arrange
         var customerId = CartTestData.CustomerId();
         var item = CartTestData.Item();
 
+        // Act
         var cart = Cart.Create(customerId, [item]);
 
+        // Assert
         cart.Id.Should().NotBeEmpty();
         cart.CustomerId.Should().Be(customerId);
         cart.Status.Should().Be(CartStatus.Active);
@@ -25,18 +28,24 @@ public class CartTests
         cart.UpdatedAt.Should().BeNull();
     }
 
-    [Fact(DisplayName = "Creating a cart raises no domain event")]
-    public void Given_NewCart_When_Created_Then_RaisesNothing()
+    [Fact]
+    public void Creating_A_Cart_Raises_No_Domain_Event()
     {
-        CartTestData.Cart().DomainEvents.Should().BeEmpty();
+        // Act
+        var cart = CartTestData.Cart();
+
+        // Assert
+        cart.DomainEvents.Should().BeEmpty();
     }
 
-    [Fact(DisplayName = "Creating a cart merges duplicate lines into one summed line")]
-    public void Given_DuplicateLines_When_Created_Then_MergesAndSums()
+    [Fact]
+    public void Creating_A_Cart_Merges_Duplicate_Lines_Summing_The_Quantities()
     {
+        // Arrange
         var productId = CartTestData.ProductId();
         var other = CartTestData.Item(quantity: 1);
 
+        // Act
         var cart = Cart.Create(CartTestData.CustomerId(),
         [
             CartTestData.Item(productId, "Mountain Bike", 2),
@@ -44,6 +53,7 @@ public class CartTests
             CartTestData.Item(productId, "Bicicleta", 5)
         ]);
 
+        // Assert
         cart.Items.Should().HaveCount(2);
 
         var merged = cart.Items.Single(item => item.Product.Id == productId);
@@ -53,82 +63,100 @@ public class CartTests
         cart.Items.Last().Should().Be(other);
     }
 
-    [Fact(DisplayName = "Creating a cart without a customer throws")]
-    public void Given_NoCustomer_When_Created_Then_Throws()
+    [Fact]
+    public void Creating_A_Cart_Without_A_Customer_Throws()
     {
+        // Act
         var act = () => Cart.Create(Guid.Empty, [CartTestData.Item()]);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Fact(DisplayName = "Creating a cart without a line list throws")]
-    public void Given_NoLineList_When_Created_Then_Throws()
+    [Fact]
+    public void Creating_A_Cart_Without_A_Line_List_Throws()
     {
+        // Act
         var act = () => Cart.Create(CartTestData.CustomerId(), null!);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Fact(DisplayName = "Creating a cart with an empty line throws")]
-    public void Given_EmptyLine_When_Created_Then_Throws()
+    [Fact]
+    public void Creating_A_Cart_With_An_Empty_Line_Throws()
     {
+        // Act
         var act = () => Cart.Create(CartTestData.CustomerId(), [null!]);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Fact(DisplayName = "Replacing the lines swaps the whole set and stamps the update time")]
-    public void Given_ActiveCart_When_ItemsReplaced_Then_SwapsAndTouches()
+    [Fact]
+    public void Replacing_The_Lines_Swaps_The_Whole_Set_And_Stamps_The_Update_Time()
     {
+        // Arrange
         var cart = CartTestData.Cart(CartTestData.Item(quantity: 3));
         var replacement = CartTestData.Item(quantity: 8);
 
+        // Act
         cart.ReplaceItems([replacement]);
 
+        // Assert
         cart.Items.Should().ContainSingle().Which.Should().Be(replacement);
         cart.UpdatedAt.Should().NotBeNull().And.BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
-    [Fact(DisplayName = "Replacing the lines merges duplicates the same way creation does")]
-    public void Given_DuplicateLines_When_ItemsReplaced_Then_MergesAndSums()
+    [Fact]
+    public void Replacing_The_Lines_Merges_Duplicates_The_Same_Way_Creation_Does()
     {
+        // Arrange
         var productId = CartTestData.ProductId();
         var cart = CartTestData.Cart();
 
+        // Act
         cart.ReplaceItems(
         [
             CartTestData.Item(productId, "Helmet", 4),
             CartTestData.Item(productId, "Capacete", 6)
         ]);
 
+        // Assert
         var merged = cart.Items.Should().ContainSingle().Subject;
         merged.Quantity.Value.Should().Be(10);
         merged.Product.Title.Should().Be("Helmet");
     }
 
-    [Theory(DisplayName = "A cart that is no longer active refuses every mutation")]
+    [Theory]
     [InlineData(CartStatus.CheckedOut)]
     [InlineData(CartStatus.Abandoned)]
-    public void Given_InactiveCart_When_Mutated_Then_Throws(CartStatus status)
+    public void A_Cart_That_Is_No_Longer_Active_Refuses_Every_Mutation(CartStatus status)
     {
+        // Arrange
         var cart = CartTestData.RestoredCart(status);
 
+        // Act
         var act = () => cart.ReplaceItems([CartTestData.Item()]);
 
+        // Assert
         act.Should().Throw<DomainException>();
         cart.UpdatedAt.Should().BeNull();
     }
 
-    [Fact(DisplayName = "Restoring a cart keeps its identity, status and timestamps")]
-    public void Given_StoredValues_When_Restored_Then_KeepsState()
+    [Fact]
+    public void Restoring_A_Cart_Keeps_Its_Identity_Status_And_Timestamps()
     {
+        // Arrange
         var id = Guid.NewGuid();
         var customerId = CartTestData.CustomerId();
         var createdAt = new DateTime(2026, 3, 4, 5, 6, 7, DateTimeKind.Utc);
         var updatedAt = createdAt.AddHours(2);
 
+        // Act
         var cart = Cart.Restore(id, customerId, CartStatus.CheckedOut, [CartTestData.Item()], createdAt, updatedAt);
 
+        // Assert
         cart.Id.Should().Be(id);
         cart.CustomerId.Should().Be(customerId);
         cart.Status.Should().Be(CartStatus.CheckedOut);
@@ -136,13 +164,16 @@ public class CartTests
         cart.UpdatedAt.Should().Be(updatedAt);
     }
 
-    [Fact(DisplayName = "The line set cannot be changed from outside the aggregate")]
-    public void Given_Cart_When_ItemsMutatedDirectly_Then_Throws()
+    [Fact]
+    public void The_Line_Set_Cannot_Be_Changed_From_Outside_The_Aggregate()
     {
+        // Arrange
         var cart = CartTestData.Cart();
 
+        // Act
         var act = () => ((IList<CartItem>)cart.Items).Add(CartTestData.Item());
 
+        // Assert
         act.Should().Throw<NotSupportedException>();
     }
 }

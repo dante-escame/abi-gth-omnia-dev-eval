@@ -24,76 +24,95 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact(DisplayName = "A minimum date keeps only the carts created on or after it")]
-    public async Task Given_MinDate_When_Listed_Then_FiltersInTheStore()
+    [Fact]
+    public async Task A_Minimum_Date_Keeps_Only_The_Carts_Created_On_Or_After_It()
     {
+        // Arrange
         await SeedAsync();
 
+        // Act
         var page = await ListAsync($"_minDate={Boundary(-15)}");
 
+        // Assert
         page.TotalItems.Should().Be(2);
         page.Data.Select(cart => cart.Date).Should().OnlyContain(date => date > Anchor.AddDays(-15));
     }
 
-    [Fact(DisplayName = "A maximum date keeps only the carts created on or before it")]
-    public async Task Given_MaxDate_When_Listed_Then_FiltersInTheStore()
+    [Fact]
+    public async Task A_Maximum_Date_Keeps_Only_The_Carts_Created_On_Or_Before_It()
     {
+        // Arrange
         await SeedAsync();
 
+        // Act
         var page = await ListAsync($"_maxDate={Boundary(-15)}");
 
+        // Assert
         page.TotalItems.Should().Be(1);
         page.Data.Single().Date.Should().BeCloseTo(Anchor.AddDays(-20), TimeSpan.FromMilliseconds(2));
     }
 
-    [Fact(DisplayName = "A date range combines both limits keeping the middle of the cart")]
-    public async Task Given_DateRange_When_Listed_Then_KeepsTheMiddleCart()
+    [Fact]
+    public async Task A_Date_Range_Combines_Both_Limits_And_Keeps_The_Cart_In_The_Middle()
     {
+        // Arrange
         await SeedAsync();
 
+        // Act
         var page = await ListAsync($"_minDate={Boundary(-15)}&_maxDate={Boundary(-5)}");
 
+        // Assert
         page.TotalItems.Should().Be(1);
         page.Data.Single().Date.Should().BeCloseTo(Anchor.AddDays(-10), TimeSpan.FromMilliseconds(2));
     }
 
-    [Fact(DisplayName = "An DateTime in ISO format is compared in UTC, not shifted into the local zone")]
-    public async Task Given_UtcBoundary_When_Listed_Then_ComparesInUtc()
+    [Fact]
+    public async Task A_Date_In_Iso_Format_Is_Compared_In_Utc_And_Not_Shifted_Into_The_Local_Zone()
     {
+        // Arrange
         await StoreAsync(Cart.Restore(Guid.NewGuid(), _owner, CartStatus.Active, [Line("Helmet", 1)], Anchor, null));
         await StoreAsync(Cart.Restore(Guid.NewGuid(), _owner, CartStatus.Active, [Line("Gloves", 1)], Anchor.AddHours(2), null));
 
+        // Act
         var page = await ListAsync("_minDate=2026-06-01T13:00:00Z");
 
+        // Assert
         page.TotalItems.Should().Be(1);
         page.Data.Single().Date.Should().Be(Anchor.AddHours(2));
     }
 
-    [Fact(DisplayName = "Ordering by date descending sorts newest first")]
-    public async Task Given_DescendingOrder_When_Listed_Then_SortsNewestFirst()
+    [Fact]
+    public async Task Ordering_By_Date_Descending_Sorts_The_Newest_Cart_First()
     {
+        // Arrange
         await SeedAsync();
 
+        // Act
         var page = await ListAsync("_order=date desc");
 
+        // Assert
         page.Data.Select(cart => cart.Date).Should().BeInDescendingOrder();
         page.Data.First().Date.Should().BeCloseTo(Anchor, TimeSpan.FromMilliseconds(2));
     }
 
-    [Fact(DisplayName = "An exact userId filter keeps only that customer carts")]
-    public async Task Given_UserIdFilter_When_Listed_Then_KeepsOneCustomer()
+    [Fact]
+    public async Task An_Exact_User_Id_Filter_Keeps_Only_That_Customers_Carts()
     {
+        // Arrange
         await SeedAsync();
 
+        // Act
         var page = await ListAsync($"userId={_stranger}");
 
+        // Assert
         page.TotalItems.Should().Be(1);
         page.Data.Single().UserId.Should().Be(_stranger);
     }
 
-    [Fact(DisplayName = "An exact status filter runs as a plain string comparison")]
-    public async Task Given_StatusFilter_When_Listed_Then_KeepsCheckedOut()
+    [Fact]
+    public async Task An_Exact_Status_Filter_Runs_As_A_Plain_String_Comparison()
     {
+        // Arrange
         await SeedAsync();
         await StoreAsync(Cart.Restore(
             Guid.NewGuid(),
@@ -103,14 +122,17 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
             Anchor.AddDays(-1),
             null));
 
+        // Act
         var page = await ListAsync($"status={nameof(CartStatus.CheckedOut)}");
 
+        // Assert
         page.TotalItems.Should().Be(1);
     }
 
-    [Fact(DisplayName = "The embedded line array materializes through the projection")]
-    public async Task Given_NestedLines_When_Listed_Then_ProjectsThem()
+    [Fact]
+    public async Task The_Embedded_Line_Array_Materializes_Through_The_Projection()
     {
+        // Arrange
         var productId = Guid.NewGuid();
         var titleless = Guid.NewGuid();
 
@@ -125,8 +147,10 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
             Anchor,
             null));
 
+        // Act
         var page = await ListAsync(string.Empty);
 
+        // Assert
         var cart = page.Data.Should().ContainSingle().Subject;
 
         cart.Products.Should().HaveCount(2);

@@ -6,30 +6,43 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Users.ValueObjects;
 
 public class PhoneTests
 {
-    [Theory(DisplayName = "Invalid phone is rejected on construction")]
+    [Theory]
     [InlineData("")]
     [InlineData("(11) 98765-4321")]
     [InlineData("+55 11 98765-4321")]
     [InlineData("+0511987654321")]
     [InlineData("+5")]
-    public void Given_InvalidValue_When_Constructed_Then_Throws(string value)
+    public void Constructing_A_Phone_From_An_Invalid_Value_Throws(string value)
     {
+        // Act
         var act = () => new Phone(value);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Theory(DisplayName = "Valid international phone is accepted")]
+    [Theory]
     [InlineData("+5511987654321")]
     [InlineData("5511987654321")]
-    public void Given_ValidValue_When_Constructed_Then_KeepsValue(string value)
+    public void Constructing_A_Phone_From_A_Valid_International_Number_Keeps_The_Value(string value)
     {
-        new Phone(value).Value.Should().Be(value);
+        // Act
+        var phone = new Phone(value);
+
+        // Assert
+        phone.Value.Should().Be(value);
     }
 
-    [Fact(DisplayName = "Phones with the same value are structurally equal")]
-    public void Given_SameValue_When_Compared_Then_Equal()
+    [Fact]
+    public void Two_Phones_With_The_Same_Value_Are_Equal()
     {
-        new Phone("+5511987654321").Should().Be(new Phone("+5511987654321"));
+        // Arrange
+        var a = new Phone("+5511987654321");
+
+        // Act
+        var b = new Phone("+5511987654321");
+
+        // Assert
+        a.Should().Be(b);
     }
 }

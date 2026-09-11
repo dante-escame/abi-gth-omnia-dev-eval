@@ -16,15 +16,18 @@ public class ProductCatalogEventHandlerTests
 
     public ProductCatalogEventHandlerTests() => _handler = new ProductCatalogEventHandler(_sender);
 
-    [Fact(DisplayName = "A created product becomes an upsert carrying the event time")]
-    public async Task Given_Created_When_Handled_Then_SendsUpsert()
+    [Fact]
+    public async Task A_Created_Product_Becomes_An_Upsert_Carrying_The_Event_Time()
     {
+        // Arrange
         var productId = CatalogEventTestData.ProductId();
         string title = CatalogEventTestData.Title();
         var occurredOn = CatalogEventTestData.OccurredOn();
 
+        // Act
         await _handler.Handle(new ProductCreatedIntegrationEvent(productId, title, occurredOn));
 
+        // Assert
         await _sender.Received(1).Send(
             Arg.Is<UpsertProductTitleCommand>(command =>
                 command.ProductId == productId &&
@@ -33,15 +36,18 @@ public class ProductCatalogEventHandlerTests
             Arg.Any<CancellationToken>());
     }
 
-    [Fact(DisplayName = "An updated product becomes an upsert carrying the event time")]
-    public async Task Given_Updated_When_Handled_Then_SendsUpsert()
+    [Fact]
+    public async Task An_Updated_Product_Becomes_An_Upsert_Carrying_The_Event_Time()
     {
+        // Arrange
         var productId = CatalogEventTestData.ProductId();
         string title = CatalogEventTestData.Title();
         var occurredOn = CatalogEventTestData.OccurredOn();
 
+        // Act
         await _handler.Handle(new ProductUpdatedIntegrationEvent(productId, title, occurredOn));
 
+        // Assert
         await _sender.Received(1).Send(
             Arg.Is<UpsertProductTitleCommand>(command =>
                 command.ProductId == productId &&
@@ -50,14 +56,17 @@ public class ProductCatalogEventHandlerTests
             Arg.Any<CancellationToken>());
     }
 
-    [Fact(DisplayName = "A deleted product becomes a removal carrying the event time")]
-    public async Task Given_Deleted_When_Handled_Then_SendsRemoval()
+    [Fact]
+    public async Task A_Deleted_Product_Becomes_A_Removal_Carrying_The_Event_Time()
     {
+        // Arrange
         var productId = CatalogEventTestData.ProductId();
         var occurredOn = CatalogEventTestData.OccurredOn();
 
+        // Act
         await _handler.Handle(new ProductDeletedIntegrationEvent(productId, occurredOn));
 
+        // Assert
         await _sender.Received(1).Send(
             Arg.Is<RemoveProductTitleCommand>(command =>
                 command.ProductId == productId &&
@@ -65,14 +74,19 @@ public class ProductCatalogEventHandlerTests
             Arg.Any<CancellationToken>());
     }
 
-    [Fact(DisplayName = "The bus handler does nothing but send a command")]
-    public async Task Given_AnyEvent_When_Handled_Then_TouchesNothingElse()
+    [Fact]
+    public async Task The_Bus_Handler_Does_Nothing_But_Send_A_Command()
     {
-        await _handler.Handle(new ProductCreatedIntegrationEvent(
+        // Arrange
+        var integrationEvent = new ProductCreatedIntegrationEvent(
             CatalogEventTestData.ProductId(),
             CatalogEventTestData.Title(),
-            CatalogEventTestData.OccurredOn()));
+            CatalogEventTestData.OccurredOn());
 
+        // Act
+        await _handler.Handle(integrationEvent);
+
+        // Assert
         _sender.ReceivedCalls().Should().ContainSingle();
     }
 }

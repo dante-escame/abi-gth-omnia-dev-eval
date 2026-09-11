@@ -18,33 +18,43 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact(DisplayName = "Every cart endpoint refuses a caller without a token")]
-    public async Task Given_NoToken_When_Called_Then_ReturnsUnauthorized()
+    [Fact]
+    public async Task Every_Cart_Endpoint_Refuses_A_Caller_Without_A_Token()
     {
+        // Arrange
         var client = factory.CreateClient();
         var id = Guid.NewGuid();
 
-        (await client.GetAsync("/api/carts")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        (await client.GetAsync($"/api/carts/{id}")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        (await client.PostAsJsonAsync("/api/carts", CartsTestClient.CartBody((id, 1)))).StatusCode
-            .Should().Be(HttpStatusCode.Unauthorized);
-        (await client.PutAsJsonAsync($"/api/carts/{id}", CartsTestClient.CartBody((id, 1)))).StatusCode
-            .Should().Be(HttpStatusCode.Unauthorized);
-        (await client.DeleteAsync($"/api/carts/{id}")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        // Act
+        var list = await client.GetAsync("/api/carts");
+        var read = await client.GetAsync($"/api/carts/{id}");
+        var created = await client.PostAsJsonAsync("/api/carts", CartsTestClient.CartBody((id, 1)));
+        var replaced = await client.PutAsJsonAsync($"/api/carts/{id}", CartsTestClient.CartBody((id, 1)));
+        var deleted = await client.DeleteAsync($"/api/carts/{id}");
+
+        // Assert
+        list.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        read.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        created.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        replaced.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        deleted.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    [Fact(DisplayName = "Creating a cart answers 201 with a location header and the token owner")]
-    public async Task Given_ValidBody_When_Posted_Then_ReturnsCreated()
+    [Fact]
+    public async Task Creating_A_Cart_Returns_201_With_A_Location_Header_And_The_Token_Owner()
     {
+        // Arrange
         var (customer, customerId) = await factory.SignInAsync(UserRole.Customer);
         var productId = Guid.NewGuid();
 
+        // Act
         var response = await customer.PostAsJsonAsync("/api/carts", CartsTestClient.CartBody((productId, 4)));
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var id = body.GetProperty("id").GetString();
+        string? id = body.GetProperty("id").GetString();
 
         Guid.TryParse(id, out _).Should().BeTrue();
         body.GetProperty("userId").GetString().Should().Be(customerId.ToString());
@@ -55,66 +65,78 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         line.GetProperty("quantity").GetInt32().Should().Be(4);
     }
 
-    [Fact(DisplayName = "An empty product list is rejected with the documented error body")]
-    public async Task Given_NoLines_When_Posted_Then_ReturnsValidationError()
+    [Fact]
+    public async Task Creating_A_Cart_With_An_Empty_Product_List_Returns_400_With_The_Error_Body()
     {
+        // Arrange
         var (customer, _) = await factory.SignInAsync(UserRole.Customer);
 
+        // Act
         var response = await customer.PostAsJsonAsync("/api/carts", CartsTestClient.CartBody());
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         await response.ShouldBeErrorBodyAsync("ValidationError");
     }
 
-    [Fact(DisplayName = "A checked out cart refuses a replacement with 409")]
-    public async Task Given_CheckedOutCart_When_Updated_Then_ReturnsConflict()
+    [Fact]
+    public async Task Replacing_The_Lines_Of_A_Checked_Out_Cart_Returns_409()
     {
+        // Arrange
         var (customer, customerId) = await factory.SignInAsync(UserRole.Customer);
         var cart = await SeedAsync(customerId, CartStatus.CheckedOut);
 
+        // Act
         var response = await customer.PutAsJsonAsync(
             $"/api/carts/{cart.Id}",
             CartsTestClient.CartBody((Guid.NewGuid(), 1)));
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
         await response.ShouldBeErrorBodyAsync("Carts.AlreadyCheckedOut");
     }
 
-    [Fact(DisplayName = "A checked out cart refuses a delete with 409")]
-    public async Task Given_CheckedOutCart_When_Deleted_Then_ReturnsConflict()
+    [Fact]
+    public async Task Deleting_A_Checked_Out_Cart_Returns_409()
     {
+        // Arrange
         var (customer, customerId) = await factory.SignInAsync(UserRole.Customer);
         var cart = await SeedAsync(customerId, CartStatus.CheckedOut);
 
+        // Act
         var response = await customer.DeleteAsync($"/api/carts/{cart.Id}");
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
         await response.ShouldBeErrorBodyAsync("Carts.AlreadyCheckedOut");
     }
 
-    [Fact(DisplayName = "Someone else's cart looks like it does not exist")]
-    public async Task Given_ForeignCart_When_Called_Then_ReturnsNotFound()
+    [Fact]
+    public async Task A_Cart_Belonging_To_Someone_Else_Looks_Like_It_Does_Not_Exist()
     {
+        // Arrange
         var (_, ownerId) = await factory.SignInAsync(UserRole.Customer);
         var (stranger, _) = await factory.SignInAsync(UserRole.Customer);
         var cart = await SeedAsync(ownerId, CartStatus.Active);
 
+        // Act
         var read = await stranger.GetAsync($"/api/carts/{cart.Id}");
-        read.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        await read.ShouldBeErrorBodyAsync("Carts.NotFound");
-
         var replaced = await stranger.PutAsJsonAsync(
             $"/api/carts/{cart.Id}",
             CartsTestClient.CartBody((Guid.NewGuid(), 1)));
-        replaced.StatusCode.Should().Be(HttpStatusCode.NotFound);
-
         var deleted = await stranger.DeleteAsync($"/api/carts/{cart.Id}");
+
+        // Assert
+        read.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        await read.ShouldBeErrorBodyAsync("Carts.NotFound");
+        replaced.StatusCode.Should().Be(HttpStatusCode.NotFound);
         deleted.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    [Fact(DisplayName = "A customer listing carts sees only their own, totals included")]
-    public async Task Given_ForeignCarts_When_Listed_Then_CountsOnlyOwn()
+    [Fact]
+    public async Task A_Customer_Listing_Carts_Sees_Only_Their_Own_Totals_Included()
     {
+        // Arrange
         var (customer, customerId) = await factory.SignInAsync(UserRole.Customer);
         var (_, strangerId) = await factory.SignInAsync(UserRole.Customer);
 
@@ -122,7 +144,10 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         await SeedAsync(strangerId, CartStatus.Active);
         await SeedAsync(strangerId, CartStatus.Active);
 
+        // Act
         var response = await customer.GetAsync("/api/carts");
+
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -134,9 +159,10 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
             .GetProperty("userId").GetString().Should().Be(customerId.ToString());
     }
 
-    [Fact(DisplayName = "A manager is not scoped to a single customer")]
-    public async Task Given_Manager_When_Listing_Then_SeesEveryCart()
+    [Fact]
+    public async Task A_Manager_Is_Not_Scoped_To_A_Single_Customer()
     {
+        // Arrange
         var (_, firstId) = await factory.SignInAsync(UserRole.Customer);
         var (_, secondId) = await factory.SignInAsync(UserRole.Customer);
         var (manager, _) = await factory.SignInAsync(UserRole.Manager);
@@ -144,20 +170,26 @@ public class CartsEndpointsTests(CartsApiFactory factory) : IAsyncLifetime
         await SeedAsync(firstId, CartStatus.Active);
         await SeedAsync(secondId, CartStatus.Active);
 
-        var body = await (await manager.GetAsync("/api/carts")).Content.ReadFromJsonAsync<JsonElement>();
+        // Act
+        var response = await manager.GetAsync("/api/carts");
 
+        // Assert
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         body.GetProperty("totalItems").GetInt32().Should().Be(2);
     }
 
-    [Fact(DisplayName = "A cart the caller owns is deleted for good")]
-    public async Task Given_OwnCart_When_Deleted_Then_ReturnsNoContent()
+    [Fact]
+    public async Task Deleting_A_Cart_The_Caller_Owns_Removes_It_For_Good()
     {
+        // Arrange
         var (customer, customerId) = await factory.SignInAsync(UserRole.Customer);
         var cart = await SeedAsync(customerId, CartStatus.Active);
 
-        (await customer.DeleteAsync($"/api/carts/{cart.Id}")).StatusCode
-            .Should().Be(HttpStatusCode.NoContent);
+        // Act
+        var deleted = await customer.DeleteAsync($"/api/carts/{cart.Id}");
 
+        // Assert
+        deleted.StatusCode.Should().Be(HttpStatusCode.NoContent);
         (await customer.GetAsync($"/api/carts/{cart.Id}")).StatusCode
             .Should().Be(HttpStatusCode.NotFound);
     }

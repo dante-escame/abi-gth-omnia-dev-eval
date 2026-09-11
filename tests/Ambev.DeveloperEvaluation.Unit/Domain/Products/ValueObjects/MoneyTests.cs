@@ -6,40 +6,58 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Products.ValueObjects;
 
 public class MoneyTests
 {
-    [Theory(DisplayName = "Amount that is not greater than zero is rejected")]
+    [Theory]
     [InlineData(0)]
     [InlineData(-0.01)]
     [InlineData(-100)]
-    public void Given_NonPositiveAmount_When_Constructed_Then_Throws(decimal amount)
+    public void Constructing_Money_From_An_Amount_That_Is_Not_Positive_Throws(decimal amount)
     {
+        // Act
         var act = () => new Money(amount);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Theory(DisplayName = "Positive amount is accepted")]
+    [Theory]
     [InlineData(0.01)]
     [InlineData(55.99)]
     [InlineData(695)]
-    public void Given_PositiveAmount_When_Constructed_Then_KeepsAmount(decimal amount)
+    public void Constructing_Money_From_A_Positive_Amount_Keeps_The_Amount(decimal amount)
     {
-        new Money(amount).Amount.Should().Be(amount);
+        // Act
+        var money = new Money(amount);
+
+        // Assert
+        money.Amount.Should().Be(amount);
     }
 
-    [Fact(DisplayName = "Amounts with the same value are structurally equal")]
-    public void Given_SameAmount_When_Compared_Then_Equal()
+    [Fact]
+    public void Two_Amounts_With_The_Same_Value_Are_Equal()
     {
+        // Arrange
         var a = new Money(55.99m);
         var b = new Money(55.99m);
 
+        // Act
+        bool equal = a == b;
+
+        // Assert
         a.Should().Be(b);
-        (a == b).Should().BeTrue();
+        equal.Should().BeTrue();
         a.GetHashCode().Should().Be(b.GetHashCode());
     }
 
-    [Fact(DisplayName = "Amounts with different values are not equal")]
-    public void Given_DifferentAmount_When_Compared_Then_NotEqual()
+    [Fact]
+    public void Two_Amounts_With_Different_Values_Are_Not_Equal()
     {
-        new Money(55.99m).Should().NotBe(new Money(22.30m));
+        // Arrange
+        var a = new Money(55.99m);
+
+        // Act
+        var b = new Money(22.30m);
+
+        // Assert
+        a.Should().NotBe(b);
     }
 }

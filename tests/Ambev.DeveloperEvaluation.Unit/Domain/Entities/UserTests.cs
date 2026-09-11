@@ -7,47 +7,58 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Entities;
 
 public class UserTests
 {
-    [Fact(DisplayName = "User status should change to Active when activated")]
-    public void Given_SuspendedUser_When_Activated_Then_StatusShouldBeActive()
+    [Fact]
+    public void Activating_A_Suspended_User_Makes_The_User_Active()
     {
+        // Arrange
         var user = UserTestData.GenerateValidUser();
         user.Status = UserStatus.Suspended;
 
+        // Act
         user.Activate();
 
+        // Assert
         Assert.Equal(UserStatus.Active, user.Status);
         Assert.NotNull(user.UpdatedAt);
     }
 
-    [Fact(DisplayName = "User status should change to Inactive when deactivated")]
-    public void Given_ActiveUser_When_Deactivated_Then_StatusShouldBeInactive()
+    [Fact]
+    public void Deactivating_An_Active_User_Makes_The_User_Inactive()
     {
+        // Arrange
         var user = UserTestData.GenerateValidUser();
         user.Status = UserStatus.Active;
 
+        // Act
         user.Deactivate();
 
+        // Assert
         Assert.Equal(UserStatus.Inactive, user.Status);
         Assert.NotNull(user.UpdatedAt);
     }
 
-    [Fact(DisplayName = "User status should change to Suspended when suspended")]
-    public void Given_ActiveUser_When_Suspended_Then_StatusShouldBeSuspended()
+    [Fact]
+    public void Suspending_An_Active_User_Makes_The_User_Suspended()
     {
+        // Arrange
         var user = UserTestData.GenerateValidUser();
         user.Status = UserStatus.Active;
 
+        // Act
         user.Suspend();
 
+        // Assert
         Assert.Equal(UserStatus.Suspended, user.Status);
         Assert.NotNull(user.UpdatedAt);
     }
 
-    [Fact(DisplayName = "Registering a user raises exactly one UserRegisteredDomainEvent")]
-    public void Given_RegisteredUser_When_Created_Then_RaisesSingleEvent()
+    [Fact]
+    public void Registering_A_User_Raises_Exactly_One_Registration_Event()
     {
+        // Act
         var user = UserTestData.RegisterValidUser();
 
+        // Assert
         var raised = Assert.Single(user.DomainEvents);
         var registered = Assert.IsType<UserRegisteredDomainEvent>(raised);
         Assert.Equal(user.Id, registered.UserId);
@@ -57,36 +68,45 @@ public class UserTests
         Assert.NotEqual(default, registered.OccurredOnUtc);
     }
 
-    [Fact(DisplayName = "Clearing domain events empties the collection")]
-    public void Given_RegisteredUser_When_EventsCleared_Then_CollectionIsEmpty()
+    [Fact]
+    public void Clearing_The_Domain_Events_Empties_The_Collection()
     {
+        // Arrange
         var user = UserTestData.RegisterValidUser();
 
+        // Act
         user.ClearDomainEvents();
 
+        // Assert
         Assert.Empty(user.DomainEvents);
     }
 
-    [Fact(DisplayName = "Validation should pass for valid user data")]
-    public void Given_ValidUserData_When_Validated_Then_ShouldReturnValid()
+    [Fact]
+    public void Validating_A_User_Built_From_Valid_Data_Succeeds()
     {
+        // Arrange
         var user = UserTestData.GenerateValidUser();
 
+        // Act
         var result = user.Validate();
 
+        // Assert
         Assert.True(result.IsValid);
         Assert.Empty(result.Errors);
     }
 
-    [Fact(DisplayName = "Validation should fail when status and role are sentinels")]
-    public void Given_SentinelStatusAndRole_When_Validated_Then_ShouldReturnInvalid()
+    [Fact]
+    public void Validating_A_User_With_Sentinel_Status_And_Role_Fails()
     {
+        // Arrange
         var user = UserTestData.GenerateValidUser();
         user.Status = UserStatus.Unknown;
         user.Role = UserRole.None;
 
+        // Act
         var result = user.Validate();
 
+        // Assert
         Assert.False(result.IsValid);
         Assert.NotEmpty(result.Errors);
     }
