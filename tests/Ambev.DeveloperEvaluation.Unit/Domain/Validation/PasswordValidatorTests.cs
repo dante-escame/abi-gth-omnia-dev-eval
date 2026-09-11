@@ -25,7 +25,7 @@ public class PasswordValidatorTests
     public void Given_ValidPassword_When_Validated_Then_ShouldNotHaveErrors()
     {
         // Arrange
-        var password = UserTestData.GenerateValidPassword();
+        string password = UserTestData.GenerateValidPassword();
 
         // Act
         var result = _validator.TestValidate(password);

@@ -19,7 +19,7 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Specifications
             var specification = new ActiveUserSpecification();
 
             // Act
-            var result = specification.IsSatisfiedBy(user);
+            bool result = specification.IsSatisfiedBy(user);
 
             // Assert
             result.Should().Be(expectedResult);

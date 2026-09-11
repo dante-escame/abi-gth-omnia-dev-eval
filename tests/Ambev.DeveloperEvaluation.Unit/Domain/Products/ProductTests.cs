@@ -37,6 +37,58 @@ public class ProductTests
             .Which.Title.Should().Be(product.Title.Value);
     }
 
+    [Fact(DisplayName = "Updating details raises exactly one updated event")]
+    public void Given_Product_When_DetailsUpdated_Then_RaisesOneUpdated()
+    {
+        var product = ProductTestData.Product();
+        product.ClearDomainEvents();
+
+        product.UpdateDetails(
+            new ProductTitle("Renamed Backpack"),
+            null,
+            ProductTestData.Category(),
+            ProductTestData.Image());
+
+        product.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<ProductUpdatedDomainEvent>()
+            .Which.Title.Should().Be("Renamed Backpack");
+    }
+
+    [Fact(DisplayName = "Deleting a product raises the deleted event")]
+    public void Given_Product_When_Deleted_Then_RaisesDeleted()
+    {
+        var product = ProductTestData.Product();
+        product.ClearDomainEvents();
+
+        product.Delete();
+
+        product.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<ProductDeletedDomainEvent>()
+            .Which.ProductId.Should().Be(product.Id);
+    }
+
+    [Fact(DisplayName = "Repricing raises no event because the replica only tracks titles")]
+    public void Given_Product_When_Repriced_Then_RaisesNothing()
+    {
+        var product = ProductTestData.Product();
+        product.ClearDomainEvents();
+
+        product.Reprice(new Money(12.34m));
+
+        product.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact(DisplayName = "Setting a rating raises no event because the replica only tracks titles")]
+    public void Given_Product_When_RatingSet_Then_RaisesNothing()
+    {
+        var product = ProductTestData.Product();
+        product.ClearDomainEvents();
+
+        product.SetRating(new Rating(3.1m, 12));
+
+        product.DomainEvents.Should().BeEmpty();
+    }
+
     [Theory(DisplayName = "Missing description is normalized to empty")]
     [InlineData(null)]
     [InlineData("")]

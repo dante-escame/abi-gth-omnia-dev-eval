@@ -25,7 +25,7 @@ public class EmailValidatorTests
     public void Given_ValidEmailFormat_When_Validated_Then_ShouldNotHaveErrors()
     {
         // Arrange
-        var email = UserTestData.GenerateValidEmail();
+        string email = UserTestData.GenerateValidEmail();
 
         // Act
         var result = _validator.TestValidate(email);
