@@ -8,7 +8,9 @@ using Ambev.DeveloperEvaluation.ORM.Lists;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.ORM.Repositories;
 using Ambev.DeveloperEvaluation.Persistence.Mongo;
+using Ambev.DeveloperEvaluation.Persistence.Mongo.Carts;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Lists;
+using Ambev.DeveloperEvaluation.Persistence.Mongo.Outbox;
 using Ambev.DeveloperEvaluation.Persistence.Mongo.Products;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +46,13 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddSingleton<IDocumentPagedQueryExecutor, DocumentPagedQueryExecutor>();
         builder.Services.AddScoped<IProductRepository, MongoProductRepository>();
         builder.Services.AddScoped<IProductQueries, MongoProductQueries>();
+        builder.Services.AddScoped<IProductEventReplay, MongoProductEventReplay>();
         builder.Services.AddHostedService<ProductIndexInitializer>();
+        builder.Services.Configure<CatalogOutboxOptions>(builder.Configuration.GetSection("CatalogOutbox"));
+        builder.Services.AddSingleton<ProcessCatalogOutboxJob>();
+        builder.Services.AddHostedService(provider => provider.GetRequiredService<ProcessCatalogOutboxJob>());
+        builder.Services.AddSingleton<CartContext>();
+        builder.Services.AddScoped<IProductTitles, MongoProductTitles>();
         builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>(
             "MongoDB",
             failureStatus: HealthStatus.Unhealthy,

@@ -1,4 +1,5 @@
 using Ambev.DeveloperEvaluation.Domain.Products;
+using Ambev.DeveloperEvaluation.Domain.Products.Events;
 using Ambev.DeveloperEvaluation.Domain.Products.ValueObjects;
 using Ambev.DeveloperEvaluation.Unit.Domain.Products.TestData;
 using FluentAssertions;
@@ -26,10 +27,14 @@ public class ProductTests
         product.UpdatedAt.Should().BeNull();
     }
 
-    [Fact(DisplayName = "Creating a product raises no domain event")]
-    public void Given_NewProduct_When_Created_Then_RaisesNothing()
+    [Fact(DisplayName = "Creating a product raises the created event")]
+    public void Given_NewProduct_When_Created_Then_RaisesCreated()
     {
-        ProductTestData.Product().DomainEvents.Should().BeEmpty();
+        var product = ProductTestData.Product();
+
+        product.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<ProductCreatedDomainEvent>()
+            .Which.Title.Should().Be(product.Title.Value);
     }
 
     [Theory(DisplayName = "Missing description is normalized to empty")]

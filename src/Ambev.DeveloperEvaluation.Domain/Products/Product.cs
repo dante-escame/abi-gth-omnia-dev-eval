@@ -1,4 +1,5 @@
 using Ambev.DeveloperEvaluation.Domain.Common;
+using Ambev.DeveloperEvaluation.Domain.Products.Events;
 using Ambev.DeveloperEvaluation.Domain.Products.ValueObjects;
 
 namespace Ambev.DeveloperEvaluation.Domain.Products;
@@ -33,7 +34,7 @@ public class Product : AggregateRoot
         ImageUrl image,
         Rating rating)
     {
-        return new Product
+        var product = new Product
         {
             Id = Guid.NewGuid(),
             Title = Required(title, nameof(title)),
@@ -44,6 +45,10 @@ public class Product : AggregateRoot
             Rating = Required(rating, nameof(rating)),
             CreatedAt = DateTime.UtcNow
         };
+
+        product.Raise(new ProductCreatedDomainEvent(product.Id, product.Title.Value));
+
+        return product;
     }
 
     public static Product Restore(
@@ -78,7 +83,10 @@ public class Product : AggregateRoot
         Category = Required(category, nameof(category));
         Image = Required(image, nameof(image));
         Touch();
+        Raise(new ProductUpdatedDomainEvent(Id, Title.Value));
     }
+
+    public void Delete() => Raise(new ProductDeletedDomainEvent(Id));
 
     public void Reprice(Money price)
     {
