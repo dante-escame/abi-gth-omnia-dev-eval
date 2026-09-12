@@ -1,5 +1,4 @@
 using Ambev.DeveloperEvaluation.Domain.Entities;
-using Ambev.DeveloperEvaluation.Domain.Users.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,36 +13,29 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id).HasColumnType("uuid").HasDefaultValueSql("gen_random_uuid()");
 
-        builder.Property(u => u.Username)
-            .HasConversion(username => username.Value, value => new Username(value))
-            .IsRequired()
-            .HasMaxLength(50);
+        builder.OwnsOne(u => u.Username, username =>
+        {
+            username.Property(x => x.Value).HasColumnName("Username").IsRequired().HasMaxLength(50);
+            username.HasIndex(x => x.Value).IsUnique();
+        });
 
-        builder.Property(u => u.Password)
-            .HasConversion(password => password.Value, value => new PasswordHash(value))
-            .IsRequired()
-            .HasMaxLength(100);
+        builder.OwnsOne(u => u.Email, email =>
+        {
+            email.Property(x => x.Value).HasColumnName("Email").IsRequired().HasMaxLength(100);
+            email.HasIndex(x => x.Value).IsUnique();
+        });
 
-        builder.Property(u => u.Email)
-            .HasConversion(email => email.Value, value => new Email(value))
-            .IsRequired()
-            .HasMaxLength(100);
+        builder.OwnsOne(u => u.Password, password =>
+            password.Property(x => x.Value).HasColumnName("Password").IsRequired().HasMaxLength(100));
 
-        builder.Property(u => u.Phone)
-            .HasConversion(phone => phone.Value, value => new Phone(value))
-            .IsRequired()
-            .HasMaxLength(20);
-
-        builder.HasIndex(u => u.Email).IsUnique();
-        builder.HasIndex(u => u.Username).IsUnique();
+        builder.OwnsOne(u => u.Phone, phone =>
+            phone.Property(x => x.Value).HasColumnName("Phone").IsRequired().HasMaxLength(20));
 
         builder.OwnsOne(u => u.Name, name =>
         {
             name.Property(n => n.FirstName).HasColumnName("FirstName").IsRequired().HasMaxLength(100);
             name.Property(n => n.LastName).HasColumnName("LastName").IsRequired().HasMaxLength(100);
         });
-
-        builder.Navigation(u => u.Name).IsRequired();
 
         builder.OwnsOne(u => u.Address, address =>
         {
@@ -61,6 +53,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             address.Navigation(a => a.Geolocation).IsRequired();
         });
 
+        builder.Navigation(u => u.Username).IsRequired();
+        builder.Navigation(u => u.Email).IsRequired();
+        builder.Navigation(u => u.Password).IsRequired();
+        builder.Navigation(u => u.Phone).IsRequired();
+        builder.Navigation(u => u.Name).IsRequired();
         builder.Navigation(u => u.Address).IsRequired();
 
         builder.Property(u => u.Status)

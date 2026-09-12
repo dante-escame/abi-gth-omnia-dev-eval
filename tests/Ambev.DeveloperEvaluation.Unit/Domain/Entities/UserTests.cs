@@ -1,4 +1,5 @@
 using Ambev.DeveloperEvaluation.Domain.Enums;
+using Ambev.DeveloperEvaluation.Domain.Users.Events;
 using Ambev.DeveloperEvaluation.Unit.Domain.Entities.TestData;
 using Xunit;
 
@@ -40,6 +41,30 @@ public class UserTests
 
         Assert.Equal(UserStatus.Suspended, user.Status);
         Assert.NotNull(user.UpdatedAt);
+    }
+
+    [Fact(DisplayName = "Registering a user raises exactly one UserRegisteredDomainEvent")]
+    public void Given_RegisteredUser_When_Created_Then_RaisesSingleEvent()
+    {
+        var user = UserTestData.RegisterValidUser();
+
+        var raised = Assert.Single(user.DomainEvents);
+        var registered = Assert.IsType<UserRegisteredDomainEvent>(raised);
+        Assert.Equal(user.Id, registered.UserId);
+        Assert.Equal(user.Email.Value, registered.Email);
+        Assert.Equal(user.Username.Value, registered.Username);
+        Assert.Equal(user.Role, registered.Role);
+        Assert.NotEqual(default, registered.OccurredOnUtc);
+    }
+
+    [Fact(DisplayName = "Clearing domain events empties the collection")]
+    public void Given_RegisteredUser_When_EventsCleared_Then_CollectionIsEmpty()
+    {
+        var user = UserTestData.RegisterValidUser();
+
+        user.ClearDomainEvents();
+
+        Assert.Empty(user.DomainEvents);
     }
 
     [Fact(DisplayName = "Validation should pass for valid user data")]

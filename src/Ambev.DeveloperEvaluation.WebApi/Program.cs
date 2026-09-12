@@ -1,13 +1,18 @@
 using Ambev.DeveloperEvaluation.Application;
+using Ambev.DeveloperEvaluation.Application.Events;
 using Ambev.DeveloperEvaluation.Common.HealthChecks;
 using Ambev.DeveloperEvaluation.Common.Logging;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
+using System.Text.Json.Serialization;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
@@ -23,17 +28,29 @@ public class Program
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             builder.AddDefaultLogging();
 
-            builder.Services.AddControllers();
+            builder.Host.UseDefaultServiceProvider(options =>
+            {
+                options.ValidateScopes = true;
+                options.ValidateOnBuild = true;
+            });
+
+            builder.Services
+                .AddControllers()
+                .AddJsonOptions(options =>
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
             builder.Services.AddEndpointsApiExplorer();
+
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
             builder.AddBasicHealthChecks();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddDbContext<DefaultContext>(options =>
+            builder.Services.AddDbContext<DefaultContext>((provider, options) =>
                 options.UseNpgsql(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
                     b => b.MigrationsAssembly("Ambev.DeveloperEvaluation.ORM")
-                )
+                ).AddInterceptors(provider.GetRequiredService<OutboxInterceptor>())
             );
 
             builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -44,16 +61,21 @@ public class Program
 
             builder.Services.AddMediatR(cfg =>
             {
+                cfg.TypeEvaluator = type => type != typeof(IdempotentDomainEventHandler<>);
                 cfg.RegisterServicesFromAssemblies(
                     typeof(ApplicationLayer).Assembly,
                     typeof(Program).Assembly
                 );
             });
 
+            builder.Services.AddValidatorsFromAssembly(typeof(ApplicationLayer).Assembly);
+
+            builder.Services.Decorate(typeof(INotificationHandler<>), typeof(IdempotentDomainEventHandler<>));
+
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             var app = builder.Build();
-            app.UseMiddleware<ValidationExceptionMiddleware>();
+            app.UseExceptionHandler();
 
             if (app.Environment.IsDevelopment())
             {
@@ -71,6 +93,10 @@ public class Program
             app.MapControllers();
 
             app.Run();
+        }
+        catch (HostAbortedException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

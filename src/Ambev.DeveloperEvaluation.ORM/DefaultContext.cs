@@ -1,4 +1,5 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Entities;
+using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,10 @@ public class DefaultContext(
     : DbContext(options)
 {
     public DbSet<User> Users { get; set; }
+
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
+
+    public DbSet<OutboxMessageConsumer> OutboxMessageConsumers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

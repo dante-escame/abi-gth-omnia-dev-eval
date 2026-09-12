@@ -7,6 +7,7 @@ public sealed class AuthenticateUserProfile : Profile
 {
     public AuthenticateUserProfile()
     {
+        CreateMap<AuthenticateUserRequest, AuthenticateUserCommand>();
         CreateMap<AuthenticateUserResult, AuthenticateUserResponse>();
     }
 }

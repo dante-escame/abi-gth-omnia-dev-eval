@@ -22,6 +22,20 @@ public static class UserTestData
 
     public static User GenerateValidUser() => UserFaker.Generate();
 
+    public static User RegisterValidUser()
+    {
+        var faker = new Faker();
+        return User.Register(
+            new Username(GenerateValidUsername()),
+            new Email(faker.Internet.Email()),
+            new Phone(GenerateValidPhone()),
+            new PasswordHash(GenerateBcryptHash()),
+            new PersonName(faker.Name.FirstName(), faker.Name.LastName()),
+            GenerateValidAddress(),
+            UserRole.Customer,
+            UserStatus.Active);
+    }
+
     public static string GenerateValidEmail() => new Faker().Internet.Email();
 
     public static string GenerateValidPassword() => $"Test@{new Faker().Random.Number(100, 999)}";
