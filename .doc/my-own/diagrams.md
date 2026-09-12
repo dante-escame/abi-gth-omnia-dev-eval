@@ -21,26 +21,32 @@ flowchart LR
     SALES -- "price and title" --> CAT
     IAM -- "identity using JWT" --> SALES
     IAM -- "identity using JWT" --> CAT
-    SALES -.->|"SaleCreated / SaleModified / SaleCancelled / ItemCancelled"| BUS[(Log - MessageBus Abstracted)]
+    SALES -.->|"SaleCreated / SaleModified / SaleCancelled / ItemCancelled"| BUS[(Logging - Abstraction of Bus)]
 ```
 
 ## Checkout Flow
 
 ```mermaid
 flowchart TD
-    A["POST /sales with cartId and branchId"] --> B[resolve branch from the seeded list]
-    B --> C["load the whole Cart aggregate"]
+    A["We POST /sales with cartId and branchId"] --> B[resolve branch from the seeded list in appsettings]
+    B --> C["get the whole Cart aggregate"]
     C --> D{cart is active, owned and not empty}
-    D -- no --> E["422 or 409, nothing written"]
-    D -- yes --> F["read price and title per product"]
+    D -- no --> E["Error: 422 or 409"]
+    D -- yes --> F["get price and title per product"]
     F -- "a product is missing" --> E
-    F --> G["apply the discount tiers and build the Sale"]
-    G -- "a line above 20 units" --> E
-    G --> H["allocate the sale number from the sequence"]
-    H --> I["cart.MarkCheckedOut(saleId)"]
-    I --> J["one transaction: sale, items, cart, outbox row"]
-    J --> K["201 with the sale, cart already CheckedOut"]
-    J --> L[outbox job publishes SaleCreated]
+    F --> G[open the transaction]
+
+    subgraph TX["transaction"]
+        G --> H["allocate the sale number using the db sequence"]
+        H --> I["apply the discount tiers and build the Sale"]
+        I --> J["checking out saleId - MarkCheckedOut"]
+        J --> K["write the sale, its items, the cart and the outbox row"]
+    end
+
+    I -- "validation: line above 20 units" --> E
+    K --> L[Commit dbTransaction]
+    L --> M["Success! 201 with the sale done & cart already CheckedOut"]
+    L --> N[Outbox job publishes SaleCreated]
 ```
 
 ## Identity and Access Management (IAM) - Domain Diagram
@@ -134,6 +140,7 @@ classDiagram
         +DateTime UpdatedAt
         +CartStatus Status
         +Guid SaleId
+        +DateTime CheckedOutAt
         +ReplaceItems(lines) void
         +MarkCheckedOut(saleId) void
     }
@@ -162,6 +169,7 @@ classDiagram
         +Create(number, customer, branch, cartId, lines, policy) Sale
         +ModifyItems(lines, policy) void
         +Cancel(reason) void
+        +Delete() void
         +CancelItem(itemId) void
         -Recalculate() void
     }
@@ -185,8 +193,8 @@ classDiagram
     class ProductRef { <<ValueObject>> +Guid Id +string Title }
     class SaleItemTotals { <<ValueObject>> +Money Gross +Money Discount +Money Net }
     class IDiscountPolicy { <<DomainService>> +Resolve(Quantity) DiscountRate }
-    class ISaleNumberGenerator { <<DomainService>> +Next() SaleNumber }
-    class IBranchDirectory { <<DomainService>> +Resolve(Guid) BranchRef }
+    class ISaleNumberGenerator { <<DomainService>> +NextAsync() SaleNumber }
+    class IBranchDirectory { <<DomainService>> +Find(Guid) BranchRef }
 
     Cart "1" *-- "0..*" CartItem : contains
     CartItem *-- Quantity
@@ -206,12 +214,27 @@ classDiagram
     Sale ..> IBranchDirectory : branch resolved by
 ```
 
+## Sale Event Publishing
+
+```mermaid
+flowchart LR
+    A[The Sale aggregate raises a domain event] --> B[OutboxInterceptor drains it on SaveChanges]
+    B --> C[(outbox_messages row)]
+    C --> D[ProcessOutboxJob reads the not yet processed rows]
+    D --> E[Mediator publishes the domain event]
+    E --> F[IdempotentDomainEventHandler drops a redelivery]
+    F --> G[one handler per event maps it to the integration contract]
+    G --> H[(Rebus - log)]
+    G --> I[payload logged as JSON at Information]
+```
+
 ## Sale Lifecycle
 
 ```mermaid
 stateDiagram-v2
     [*] --> Active : POST /sales
-    Active --> Active : PUT recalculates
+    Active --> Recalc: PUT recalculates
+    Recalc --> Active: recalc
     Active --> Active : an item is cancelled and others remain
     Active --> Cancelled : PATCH cancel
     Active --> Cancelled : the last active item is cancelled
