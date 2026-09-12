@@ -10,7 +10,7 @@ public sealed class MongoProductQueries(CatalogContext context) : IProductQuerie
     private const string CategoryField = "category";
 
     public IQueryable<ProductListItem> Query() =>
-        context.Products.AsQueryable().Select(document => new ProductListItem
+        context.Products.AsQueryable().Where(document => document.DeletedAt == null).Select(document => new ProductListItem
         {
             Id = document.Id,
             Title = document.Title,
@@ -27,7 +27,7 @@ public sealed class MongoProductQueries(CatalogContext context) : IProductQuerie
         string normalized = category.Trim().ToLowerInvariant();
 
         return context.Products.AsQueryable()
-            .Where(document => document.Category.ToLower() == normalized)
+            .Where(document => document.DeletedAt == null && document.Category.ToLower() == normalized)
             .Select(document => new ProductListItem
             {
                 Id = document.Id,
@@ -45,7 +45,7 @@ public sealed class MongoProductQueries(CatalogContext context) : IProductQuerie
     {
         var cursor = await context.Products.DistinctAsync<string>(
             CategoryField,
-            FilterDefinition<ProductDocument>.Empty,
+            Builders<ProductDocument>.Filter.Eq(document => document.DeletedAt, null),
             cancellationToken: cancellationToken);
 
         var categories = await cursor.ToListAsync(cancellationToken);

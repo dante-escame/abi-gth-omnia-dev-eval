@@ -6,46 +6,67 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Products.ValueObjects;
 
 public class ImageUrlTests
 {
-    [Theory(DisplayName = "Invalid image url is rejected on construction")]
+    [Theory]
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("not-a-url")]
     [InlineData("/relative/path.png")]
     [InlineData("example.test/image.png")]
-    public void Given_InvalidValue_When_Constructed_Then_Throws(string value)
+    public void Constructing_An_Image_Url_From_An_Invalid_Value_Throws(string value)
     {
+        // Act
         var act = () => new ImageUrl(value);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Theory(DisplayName = "Absolute url is accepted")]
+    [Theory]
     [InlineData("https://example.test/image.png")]
     [InlineData("http://cdn.example.test/a/b/c.jpg?v=2")]
-    public void Given_AbsoluteUrl_When_Constructed_Then_KeepsValue(string value)
+    public void Constructing_An_Image_Url_From_An_Absolute_Url_Keeps_The_Value(string value)
     {
-        new ImageUrl(value).Value.Should().Be(value);
+        // Act
+        var image = new ImageUrl(value);
+
+        // Assert
+        image.Value.Should().Be(value);
     }
 
-    [Fact(DisplayName = "Image url is trimmed on construction")]
-    public void Given_PaddedValue_When_Constructed_Then_Trims()
+    [Fact]
+    public void Constructing_An_Image_Url_Trims_The_Padding()
     {
-        new ImageUrl("  https://example.test/a.png  ").Value.Should().Be("https://example.test/a.png");
+        // Act
+        var image = new ImageUrl("  https://example.test/a.png  ");
+
+        // Assert
+        image.Value.Should().Be("https://example.test/a.png");
     }
 
-    [Fact(DisplayName = "Image urls with the same value are structurally equal")]
-    public void Given_SameValue_When_Compared_Then_Equal()
+    [Fact]
+    public void Two_Image_Urls_With_The_Same_Value_Are_Equal()
     {
+        // Arrange
         var a = new ImageUrl("https://example.test/a.png");
+
+        // Act
         var b = new ImageUrl("https://example.test/a.png");
 
+        // Assert
         a.Should().Be(b);
         a.GetHashCode().Should().Be(b.GetHashCode());
     }
 
-    [Fact(DisplayName = "Image urls with different values are not equal")]
-    public void Given_DifferentValue_When_Compared_Then_NotEqual()
+    [Fact]
+    public void Two_Image_Urls_With_Different_Values_Are_Not_Equal()
     {
-        new ImageUrl("https://example.test/a.png").Should().NotBe(new ImageUrl("https://example.test/b.png"));
+        // Arrange
+        var a = new ImageUrl("https://example.test/a.png");
+
+        // Act
+        var b = new ImageUrl("https://example.test/b.png");
+
+        // Assert
+        a.Should().NotBe(b);
     }
 }

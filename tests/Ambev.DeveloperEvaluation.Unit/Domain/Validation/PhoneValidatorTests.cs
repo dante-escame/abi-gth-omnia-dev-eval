@@ -6,7 +6,7 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Validation;
 
 public class PhoneValidatorTests
 {
-    [Theory(DisplayName = "Given a phone number When validating Then should enforce the international format")]
+    [Theory]
     [InlineData("+5511987654321", true)]
     [InlineData("5511987654321", true)]
     [InlineData("+1234567890", true)]
@@ -17,12 +17,15 @@ public class PhoneValidatorTests
     [InlineData("+551198765432112345", false)]
     [InlineData("abc", false)]
     [InlineData("", false)]
-    public void Given_PhoneNumber_When_Validating_Then_ShouldValidateAccordingToPattern(string phone, bool expectedResult)
+    public void The_Phone_Validator_Enforces_The_International_Format(string phone, bool expectedResult)
     {
+        // Arrange
         var validator = new PhoneValidator();
 
+        // Act
         var result = validator.Validate(phone);
 
+        // Assert
         result.IsValid.Should().Be(expectedResult);
     }
 }

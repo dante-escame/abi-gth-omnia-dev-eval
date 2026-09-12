@@ -6,50 +6,74 @@ namespace Ambev.DeveloperEvaluation.Unit.Domain.Products.ValueObjects;
 
 public class ProductTitleTests
 {
-    [Theory(DisplayName = "Invalid title is rejected on construction")]
+    [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void Given_InvalidValue_When_Constructed_Then_Throws(string value)
+    public void Constructing_A_Product_Title_From_A_Blank_Value_Throws(string value)
     {
+        // Act
         var act = () => new ProductTitle(value);
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Fact(DisplayName = "Title longer than 200 characters is rejected")]
-    public void Given_TooLongValue_When_Constructed_Then_Throws()
+    [Fact]
+    public void Constructing_A_Product_Title_Longer_Than_200_Characters_Throws()
     {
+        // Act
         var act = () => new ProductTitle(new string('a', 201));
 
+        // Assert
         act.Should().Throw<DomainException>();
     }
 
-    [Fact(DisplayName = "Title of exactly 200 characters is accepted")]
-    public void Given_MaximumLength_When_Constructed_Then_KeepsValue()
+    [Fact]
+    public void Constructing_A_Product_Title_Of_Exactly_200_Characters_Is_Allowed()
     {
-        new ProductTitle(new string('a', 200)).Value.Should().HaveLength(200);
+        // Act
+        var title = new ProductTitle(new string('a', 200));
+
+        // Assert
+        title.Value.Should().HaveLength(200);
     }
 
-    [Fact(DisplayName = "Title is trimmed on construction")]
-    public void Given_PaddedValue_When_Constructed_Then_Trims()
+    [Fact]
+    public void Constructing_A_Product_Title_Trims_The_Padding()
     {
-        new ProductTitle("  Mens Cotton Jacket  ").Value.Should().Be("Mens Cotton Jacket");
+        // Act
+        var title = new ProductTitle("  Mens Cotton Jacket  ");
+
+        // Assert
+        title.Value.Should().Be("Mens Cotton Jacket");
     }
 
-    [Fact(DisplayName = "Titles with the same value are structurally equal")]
-    public void Given_SameValue_When_Compared_Then_Equal()
+    [Fact]
+    public void Two_Product_Titles_With_The_Same_Value_Are_Equal()
     {
+        // Arrange
         var a = new ProductTitle("Backpack");
         var b = new ProductTitle("Backpack");
 
+        // Act
+        bool equal = a == b;
+
+        // Assert
         a.Should().Be(b);
-        (a == b).Should().BeTrue();
+        equal.Should().BeTrue();
         a.GetHashCode().Should().Be(b.GetHashCode());
     }
 
-    [Fact(DisplayName = "Titles with different values are not equal")]
-    public void Given_DifferentValue_When_Compared_Then_NotEqual()
+    [Fact]
+    public void Two_Product_Titles_With_Different_Values_Are_Not_Equal()
     {
-        new ProductTitle("Backpack").Should().NotBe(new ProductTitle("Jacket"));
+        // Arrange
+        var a = new ProductTitle("Backpack");
+
+        // Act
+        var b = new ProductTitle("Jacket");
+
+        // Assert
+        a.Should().NotBe(b);
     }
 }

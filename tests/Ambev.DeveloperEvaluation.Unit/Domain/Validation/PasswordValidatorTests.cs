@@ -5,27 +5,15 @@ using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Unit.Domain.Validation;
 
-/// <summary>
-/// Contains unit tests for the PasswordValidator class.
-/// Tests cover password requirements including length, character types, and empty checks.
-/// </summary>
 public class PasswordValidatorTests
 {
-    private readonly PasswordValidator _validator;
+    private readonly PasswordValidator _validator = new();
 
-    public PasswordValidatorTests()
-    {
-        _validator = new PasswordValidator();
-    }
-
-    /// <summary>
-    /// Tests that validation passes for various valid password formats.
-    /// </summary>
-    [Fact(DisplayName = "Valid passwords should pass validation")]
-    public void Given_ValidPassword_When_Validated_Then_ShouldNotHaveErrors()
+    [Fact]
+    public void A_Valid_Password_Passes_Validation()
     {
         // Arrange
-        var password = UserTestData.GenerateValidPassword();
+        string password = UserTestData.GenerateValidPassword();
 
         // Act
         var result = _validator.TestValidate(password);
@@ -34,14 +22,11 @@ public class PasswordValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    /// <summary>
-    /// Tests that validation fails when the password is empty.
-    /// </summary>
-    [Fact(DisplayName = "Empty password should fail validation")]
-    public void Given_EmptyPassword_When_Validated_Then_ShouldHaveError()
+    [Fact]
+    public void An_Empty_Password_Fails_Validation()
     {
         // Arrange
-        var password = string.Empty;
+        string password = string.Empty;
 
         // Act
         var result = _validator.TestValidate(password);
@@ -50,14 +35,10 @@ public class PasswordValidatorTests
         result.ShouldHaveValidationErrorFor(x => x);
     }
 
-    /// <summary>
-    /// Tests that validation fails when password is shorter than minimum length.
-    /// </summary>
-    /// <param name="password">The short password to test.</param>
-    [Theory(DisplayName = "Password shorter than minimum length should fail validation")]
-    [InlineData("Test@1")] // 6 characters
-    [InlineData("Pass#2")] // 7 characters
-    public void Given_PasswordShorterThanMinimum_When_Validated_Then_ShouldHaveError(string password)
+    [Theory]
+    [InlineData("Test@1")]
+    [InlineData("Pass#2")]
+    public void A_Password_Shorter_Than_The_Minimum_Length_Fails_Validation(string password)
     {
         // Act
         var result = _validator.TestValidate(password);
@@ -66,14 +47,11 @@ public class PasswordValidatorTests
         result.ShouldHaveValidationErrorFor(x => x);
     }
 
-    /// <summary>
-    /// Tests that validation fails when password lacks uppercase letters.
-    /// </summary>
-    [Fact(DisplayName = "Password without uppercase should fail validation")]
-    public void Given_PasswordWithoutUppercase_When_Validated_Then_ShouldHaveError()
+    [Fact]
+    public void A_Password_Without_An_Uppercase_Letter_Fails_Validation()
     {
         // Arrange
-        var password = "password@123";
+        string password = "password@123";
 
         // Act
         var result = _validator.TestValidate(password);
@@ -83,14 +61,11 @@ public class PasswordValidatorTests
             .WithErrorMessage("Password must contain at least one uppercase letter.");
     }
 
-    /// <summary>
-    /// Tests that validation fails when password lacks lowercase letters.
-    /// </summary>
-    [Fact(DisplayName = "Password without lowercase should fail validation")]
-    public void Given_PasswordWithoutLowercase_When_Validated_Then_ShouldHaveError()
+    [Fact]
+    public void A_Password_Without_A_Lowercase_Letter_Fails_Validation()
     {
         // Arrange
-        var password = "PASSWORD@123";
+        string password = "PASSWORD@123";
 
         // Act
         var result = _validator.TestValidate(password);
@@ -100,14 +75,11 @@ public class PasswordValidatorTests
             .WithErrorMessage("Password must contain at least one lowercase letter.");
     }
 
-    /// <summary>
-    /// Tests that validation fails when password lacks numbers.
-    /// </summary>
-    [Fact(DisplayName = "Password without numbers should fail validation")]
-    public void Given_PasswordWithoutNumber_When_Validated_Then_ShouldHaveError()
+    [Fact]
+    public void A_Password_Without_A_Number_Fails_Validation()
     {
         // Arrange
-        var password = "Password@ABC";
+        string password = "Password@ABC";
 
         // Act
         var result = _validator.TestValidate(password);
@@ -117,14 +89,11 @@ public class PasswordValidatorTests
             .WithErrorMessage("Password must contain at least one number.");
     }
 
-    /// <summary>
-    /// Tests that validation fails when password lacks special characters.
-    /// </summary>
-    [Fact(DisplayName = "Password without special characters should fail validation")]
-    public void Given_PasswordWithoutSpecialCharacter_When_Validated_Then_ShouldHaveError()
+    [Fact]
+    public void A_Password_Without_A_Special_Character_Fails_Validation()
     {
         // Arrange
-        var password = "Password123";
+        string password = "Password123";
 
         // Act
         var result = _validator.TestValidate(password);

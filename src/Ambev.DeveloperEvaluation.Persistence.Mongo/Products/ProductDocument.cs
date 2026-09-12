@@ -1,5 +1,6 @@
 using Ambev.DeveloperEvaluation.Domain.Products;
 using Ambev.DeveloperEvaluation.Domain.Products.ValueObjects;
+using Ambev.DeveloperEvaluation.Persistence.Mongo.Outbox;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Ambev.DeveloperEvaluation.Persistence.Mongo.Products;
@@ -36,6 +37,12 @@ public sealed class ProductDocument
     [BsonElement("updatedAt")]
     public DateTime? UpdatedAt { get; set; }
 
+    [BsonElement("deletedAt")]
+    public DateTime? DeletedAt { get; set; }
+
+    [BsonElement("pendingEvents")]
+    public List<PendingEventDocument> PendingEvents { get; set; } = [];
+
     public static ProductDocument From(Product product) => new()
     {
         Id = product.Id,
@@ -47,7 +54,8 @@ public sealed class ProductDocument
         Rate = product.Rating.Rate,
         RatingCount = product.Rating.Count,
         CreatedAt = product.CreatedAt,
-        UpdatedAt = product.UpdatedAt
+        UpdatedAt = product.UpdatedAt,
+        PendingEvents = product.DomainEvents.Select(DocumentOutboxSerializer.ToPending).ToList()
     };
 
     public Product ToAggregate() => Product.Restore(

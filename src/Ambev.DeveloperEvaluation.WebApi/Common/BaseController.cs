@@ -7,8 +7,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Common;
 [ApiController]
 public class BaseController : ControllerBase
 {
-    protected int GetCurrentUserId() =>
-            int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new NullReferenceException());
+    protected Guid GetCurrentUserId() => User.CurrentUserId();
 
     protected string GetCurrentUserEmail() =>
         User.FindFirst(ClaimTypes.Email)?.Value ?? throw new NullReferenceException();

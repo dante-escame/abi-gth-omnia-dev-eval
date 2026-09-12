@@ -5,6 +5,7 @@ using Ambev.DeveloperEvaluation.Application.Products.GetProduct;
 using Ambev.DeveloperEvaluation.Application.Products.ListCategories;
 using Ambev.DeveloperEvaluation.Application.Products.ListProducts;
 using Ambev.DeveloperEvaluation.Application.Products.ListProductsByCategory;
+using Ambev.DeveloperEvaluation.Application.Products.ReplayProductEvents;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Common;
@@ -109,6 +110,17 @@ public class ProductsController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new DeleteProductCommand(id), cancellationToken);
 
         return result.IsSuccess ? NoContent() : Problem(result.Error!);
+    }
+
+    [HttpPost("replay")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ReplayProductEvents(CancellationToken cancellationToken)
+    {
+        long enqueued = await mediator.Send(new ReplayProductEventsCommand(), cancellationToken);
+
+        return Accepted(new { enqueued });
     }
 
     private ListQuery ParseList() =>

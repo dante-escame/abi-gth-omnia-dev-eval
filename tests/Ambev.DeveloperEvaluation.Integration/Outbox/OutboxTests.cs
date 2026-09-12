@@ -21,11 +21,13 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact(DisplayName = "Creating a user writes one outbox row in the same transaction")]
-    public async Task Given_RegisteredUser_When_Saved_Then_WritesOneOutboxRow()
+    [Fact]
+    public async Task Saving_A_User_Writes_One_Outbox_Row_In_The_Same_Transaction()
     {
+        // Arrange
         var user = NewUser();
 
+        // Act
         using (var scope = fixture.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
@@ -35,6 +37,7 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
             user.DomainEvents.Should().BeEmpty();
         }
 
+        // Assert
         using (var scope = fixture.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
@@ -51,20 +54,16 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
         }
     }
 
-    [Fact(DisplayName = "A failed save writes neither the user nor the outbox row")]
-    public async Task Given_FailingSave_When_Rolled_Back_Then_NoOutboxRow()
+    [Fact]
+    public async Task A_Failed_Save_Writes_Neither_The_User_Nor_The_Outbox_Row()
     {
+        // Arrange
         var first = NewUser();
-
-        using (var scope = fixture.Services.CreateScope())
-        {
-            var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
-            context.Users.Add(first);
-            await context.SaveChangesAsync();
-        }
+        await SaveAsync(first);
 
         var duplicate = NewUser(email: first.Email.Value);
 
+        // Act
         using (var scope = fixture.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
@@ -74,6 +73,7 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
             await save.Should().ThrowAsync<DbUpdateException>();
         }
 
+        // Assert
         using (var scope = fixture.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
@@ -82,14 +82,17 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
         }
     }
 
-    [Fact(DisplayName = "The outbox cycle publishes the event and logs it once")]
-    public async Task Given_PendingMessage_When_Processed_Then_HandlerLogsOnce()
+    [Fact]
+    public async Task An_Outbox_Cycle_Publishes_The_Pending_Message_And_Logs_It_Once()
     {
+        // Arrange
         var user = NewUser();
         await SaveAsync(user);
 
-        var processed = await fixture.Services.GetRequiredService<ProcessOutboxJob>().ProcessBatchAsync();
+        // Act
+        int processed = await fixture.Services.GetRequiredService<ProcessOutboxJob>().ProcessBatchAsync();
 
+        // Assert
         processed.Should().Be(1);
 
         LogLines().Should().ContainSingle()
@@ -107,17 +110,19 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
         consumer.HandlerName.Should().Be("UserRegisteredDomainEventHandler");
     }
 
-    [Fact(DisplayName = "A duplicated dispatch runs the handler once")]
-    public async Task Given_ReplayedMessage_When_Processed_Twice_Then_HandlerRunsOnce()
+    [Fact]
+    public async Task A_Duplicated_Dispatch_Runs_The_Handler_Only_Once()
     {
+        // Arrange
         await SaveAsync(NewUser());
-
         var job = fixture.Services.GetRequiredService<ProcessOutboxJob>();
 
+        // Act
         await job.ProcessBatchAsync();
         await ReopenMessagesAsync();
         await job.ProcessBatchAsync();
 
+        // Assert
         LogLines().Should().ContainSingle();
 
         using var scope = fixture.Services.CreateScope();
@@ -148,7 +153,7 @@ public class OutboxTests(OutboxFixture fixture) : IClassFixture<OutboxFixture>, 
     private static User NewUser(string? email = null)
     {
         var faker = new Faker();
-        var username = faker.Internet.UserName().PadRight(3, 'x');
+        string username = faker.Internet.UserName().PadRight(3, 'x');
 
         return User.Register(
             new Username(username.Length > 50 ? username[..50] : username),

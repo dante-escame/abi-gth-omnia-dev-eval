@@ -12,6 +12,7 @@
 	
 	<ItemGroup>
 	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
+	  <PackageReference Include="Rebus.ServiceProvider" Version="10.7.2" />
 	  <PackageReference Include="Scrutor" Version="4.2.2" />
 	</ItemGroup>
 	
@@ -21,6 +22,7 @@
 		<ProjectReference Include="..\Ambev.DeveloperEvaluation.ORM\Ambev.DeveloperEvaluation.ORM.csproj" />
 		<ProjectReference Include="..\Ambev.DeveloperEvaluation.Common\Ambev.DeveloperEvaluation.Common.csproj" />
 		<ProjectReference Include="..\Ambev.DeveloperEvaluation.Persistence.Mongo\Ambev.DeveloperEvaluation.Persistence.Mongo.csproj" />
+		<ProjectReference Include="..\Ambev.DeveloperEvaluation.Catalog.IntegrationEvents\Ambev.DeveloperEvaluation.Catalog.IntegrationEvents.csproj" />
 	</ItemGroup>
 
 </Project>

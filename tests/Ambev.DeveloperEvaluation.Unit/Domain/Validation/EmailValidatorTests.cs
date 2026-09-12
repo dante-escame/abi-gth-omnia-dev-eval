@@ -5,27 +5,15 @@ using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Unit.Domain.Validation;
 
-/// <summary>
-/// Contains unit tests for the EmailValidator class.
-/// Tests cover various email validation scenarios including format, length, and empty checks.
-/// </summary>
 public class EmailValidatorTests
 {
-    private readonly EmailValidator _validator;
+    private readonly EmailValidator _validator = new();
 
-    public EmailValidatorTests()
-    {
-        _validator = new EmailValidator();
-    }
-
-    /// <summary>
-    /// Tests that validation passes for various valid email formats.
-    /// </summary>
-    [Fact(DisplayName = "Valid email formats should pass validation")]
-    public void Given_ValidEmailFormat_When_Validated_Then_ShouldNotHaveErrors()
+    [Fact]
+    public void A_Valid_Email_Passes_Validation()
     {
         // Arrange
-        var email = UserTestData.GenerateValidEmail();
+        string email = UserTestData.GenerateValidEmail();
 
         // Act
         var result = _validator.TestValidate(email);
@@ -34,14 +22,11 @@ public class EmailValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    /// <summary>
-    /// Tests that validation fails when the email is empty.
-    /// </summary>
-    [Fact(DisplayName = "Empty email should fail validation")]
-    public void Given_EmptyEmail_When_Validated_Then_ShouldHaveError()
+    [Fact]
+    public void An_Empty_Email_Fails_Validation()
     {
         // Arrange
-        var email = string.Empty;
+        string email = string.Empty;
 
         // Act
         var result = _validator.TestValidate(email);
@@ -51,16 +36,13 @@ public class EmailValidatorTests
             .WithErrorMessage("The email address cannot be empty.");
     }
 
-    /// <summary>
-    /// Tests that validation fails for various invalid email formats.
-    /// </summary>
-    [Theory(DisplayName = "Invalid email formats should fail validation")]
+    [Theory]
     [InlineData("invalid-email")]
     [InlineData("user@")]
     [InlineData("@domain.com")]
     [InlineData("user@.com")]
     [InlineData("user@domain.")]
-    public void Given_InvalidEmailFormat_When_Validated_Then_ShouldHaveError(string email)
+    public void An_Invalid_Email_Format_Fails_Validation(string email)
     {
         // Act
         var result = _validator.TestValidate(email);
@@ -70,14 +52,11 @@ public class EmailValidatorTests
             .WithErrorMessage("The provided email address is not valid.");
     }
 
-    /// <summary>
-    /// Tests that validation fails when email exceeds maximum length.
-    /// </summary>
-    [Fact(DisplayName = "Email exceeding maximum length should fail validation")]
-    public void Given_EmailExceeding100Characters_When_Validated_Then_ShouldHaveError()
+    [Fact]
+    public void An_Email_Longer_Than_100_Characters_Fails_Validation()
     {
         // Arrange
-        var email = $"{"a".PadLeft(90, 'a')}@example.com"; // Creates email > 100 chars
+        string email = $"{"a".PadLeft(90, 'a')}@example.com";
 
         // Act
         var result = _validator.TestValidate(email);

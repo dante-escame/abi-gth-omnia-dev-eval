@@ -50,7 +50,7 @@ public static class UserTestData
 
     public static string GenerateValidUsername()
     {
-        var candidate = new Faker().Internet.UserName();
+        string? candidate = new Faker().Internet.UserName();
         if (candidate.Length < 3)
             candidate = candidate.PadRight(3, 'x');
         return candidate.Length > 50 ? candidate[..50] : candidate;
