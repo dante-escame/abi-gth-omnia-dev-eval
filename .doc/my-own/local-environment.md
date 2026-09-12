@@ -2,6 +2,28 @@
 
 Taking some notes about running this locally.
 
+## Quick Reset
+
+```
+docker compose down -v
+docker compose up -d
+export PATH="$PATH:$HOME/.dotnet/tools"   # or fish_add_path once
+dotnet ef database update --project src/Ambev.DeveloperEvaluation.ORM --startup-project src/Ambev.DeveloperEvaluation.WebApi
+```
+
+## Rebuild Image
+
+```
+docker compose up -d --build ambev.developerevaluation.webapi
+```
+
+## Full stack down and up, keeping data:
+
+```
+docker compose down
+docker compose up -d
+```
+
 ## Docker Compose
 
 The API container comes up as soon as Postgres reports healthy, but applying migrations is always a separate manual step.
