@@ -5,6 +5,9 @@ Taking some notes about running this locally.
 ## Quick Reset
 
 ```
+docker exec -it ambev_developer_evaluation_database psql -U developer -d developer_evaluation
+update "Users" set "Role" = 'Admin' where "Username" = '<admin-username-here>';
+
 docker compose down -v
 docker compose up -d
 export PATH="$PATH:$HOME/.dotnet/tools"   # or fish_add_path once

@@ -1,0 +1,814 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-09-12T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v8.6.1",
+  "resources": [
+    {
+      "_id": "wrk_d8778a1fd8ac9c003ee61a97c3386fd9",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "DeveloperStore Checkout Walkthrough",
+      "description": "The cart to sale path, one request per step. Steps run top to bottom. Step 04 is a manual database command, see the folder README.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_491dce1fdecdcb917e153c6bf4e7c4fb",
+      "_type": "environment",
+      "parentId": "wrk_d8778a1fd8ac9c003ee61a97c3386fd9",
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:8080",
+        "password": "Passw0rd@1",
+        "branchDowntown": "3f2a6c10-5f1e-4b8a-9c2d-0a1b2c3d4e01",
+        "branchUnknown": "11111111-1111-1111-1111-111111111111",
+        "customerEmail": "",
+        "catalogEmail": "",
+        "customerToken": "",
+        "catalogToken": "",
+        "helmetId": "",
+        "glovesId": "",
+        "cartId": "",
+        "saleId": "",
+        "oversizedCartId": "",
+        "cancellableItemId": ""
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl",
+          "password",
+          "branchDowntown",
+          "branchUnknown",
+          "customerEmail",
+          "catalogEmail",
+          "customerToken",
+          "catalogToken",
+          "helmetId",
+          "glovesId",
+          "cartId",
+          "saleId",
+          "oversizedCartId",
+          "cancellableItemId"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "env_bd80bb4120385bd87a55b65c258c4b74",
+      "_type": "environment",
+      "parentId": "env_491dce1fdecdcb917e153c6bf4e7c4fb",
+      "name": "Docker Compose",
+      "data": {
+        "baseUrl": "http://localhost:8080"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl"
+        ]
+      },
+      "color": "#7d69cb",
+      "isPrivate": false,
+      "metaSortKey": 1000
+    },
+    {
+      "_id": "env_f9239d10ade7e1e4cf7e9ddd598a600a",
+      "_type": "environment",
+      "parentId": "env_491dce1fdecdcb917e153c6bf4e7c4fb",
+      "name": "IDE, http profile",
+      "data": {
+        "baseUrl": "http://localhost:5119"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl"
+        ]
+      },
+      "color": "#59a2d6",
+      "isPrivate": false,
+      "metaSortKey": 2000
+    },
+    {
+      "_id": "env_d7a629fc5d4d1821c61917f5add18870",
+      "_type": "environment",
+      "parentId": "env_491dce1fdecdcb917e153c6bf4e7c4fb",
+      "name": "IDE, https profile",
+      "data": {
+        "baseUrl": "https://localhost:7181"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl"
+        ]
+      },
+      "color": "#4ba65a",
+      "isPrivate": false,
+      "metaSortKey": 3000
+    },
+    {
+      "_id": "fld_05e917d158027c8bde125a695ac97ad2",
+      "_type": "request_group",
+      "parentId": "wrk_d8778a1fd8ac9c003ee61a97c3386fd9",
+      "name": "A. Setup",
+      "description": "Registering the two users and signing both in.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000
+    },
+    {
+      "_id": "fld_9e7b657f12a1cd74962c60fe751c8020",
+      "_type": "request_group",
+      "parentId": "wrk_d8778a1fd8ac9c003ee61a97c3386fd9",
+      "name": "B. Catalog",
+      "description": "The products the sale takes its price and title from.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 2000
+    },
+    {
+      "_id": "fld_69491e1ccb462c4bd44a72a14531e23a",
+      "_type": "request_group",
+      "parentId": "wrk_d8778a1fd8ac9c003ee61a97c3386fd9",
+      "name": "C. Checkout",
+      "description": "The cart and the one request that turns it into a sale.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 3000
+    },
+    {
+      "_id": "fld_25ea1fd48101bffe291a551e3ee04bee",
+      "_type": "request_group",
+      "parentId": "wrk_d8778a1fd8ac9c003ee61a97c3386fd9",
+      "name": "D. Guards",
+      "description": "The refusals. Every one of these is expected to fail.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 4000
+    },
+    {
+      "_id": "fld_48a202b43489825f4451801e3ec7204b",
+      "_type": "request_group",
+      "parentId": "wrk_d8778a1fd8ac9c003ee61a97c3386fd9",
+      "name": "E. Lifecycle",
+      "description": "Recalculating, cancelling and soft deleting.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 5000
+    },
+    {
+      "_id": "req_d064b908181f27c58b78367893f9b871",
+      "_type": "request",
+      "parentId": "fld_05e917d158027c8bde125a695ac97ad2",
+      "name": "01 Health check",
+      "description": "Expects 200. Confirms the stack is up before anything else runs.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/health",
+      "body": {},
+      "headers": [],
+      "authentication": {},
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 1000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_a8f5b98490489bc011805e2a86cfae3d",
+      "_type": "request",
+      "parentId": "fld_05e917d158027c8bde125a695ac97ad2",
+      "name": "02 Register the customer",
+      "description": "Expects 201. The email and username are generated per send, so this is safe to repeat. Later steps read the email back out of this response.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/users",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"customer-{% uuid 'v4' %}@example.test\",\n  \"username\": \"customer-{% uuid 'v4' %}\",\n  \"password\": \"{{ _.password }}\",\n  \"name\": {\n    \"firstname\": \"Walkthrough\",\n    \"lastname\": \"Runner\"\n  },\n  \"address\": {\n    \"city\": \"Sao Paulo\",\n    \"street\": \"Rua Um\",\n    \"number\": 42,\n    \"zipcode\": \"01000-000\",\n    \"geolocation\": {\n      \"lat\": \"-23.5\",\n      \"long\": \"-46.6\"\n    }\n  },\n  \"phone\": \"+5511987654321\",\n  \"status\": \"Active\",\n  \"role\": \"Customer\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 2000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('customerEmail', json.email);\n}\n"
+    },
+    {
+      "_id": "req_af898036eb99ce367926f5746276bf10",
+      "_type": "request",
+      "parentId": "fld_05e917d158027c8bde125a695ac97ad2",
+      "name": "03 Register the catalog writer",
+      "description": "Expects 201. Registers as Customer, because self registration refuses every other role.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/users",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"catalog-{% uuid 'v4' %}@example.test\",\n  \"username\": \"catalog-{% uuid 'v4' %}\",\n  \"password\": \"{{ _.password }}\",\n  \"name\": {\n    \"firstname\": \"Walkthrough\",\n    \"lastname\": \"Runner\"\n  },\n  \"address\": {\n    \"city\": \"Sao Paulo\",\n    \"street\": \"Rua Um\",\n    \"number\": 42,\n    \"zipcode\": \"01000-000\",\n    \"geolocation\": {\n      \"lat\": \"-23.5\",\n      \"long\": \"-46.6\"\n    }\n  },\n  \"phone\": \"+5511987654321\",\n  \"status\": \"Active\",\n  \"role\": \"Customer\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 3000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('catalogEmail', json.email);\n}\n"
+    },
+    {
+      "_id": "req_aafbcf2d7347aafacd7c118270ad3fb7",
+      "_type": "request",
+      "parentId": "fld_05e917d158027c8bde125a695ac97ad2",
+      "name": "04 Promote the catalog writer, MANUAL, do not send",
+      "description": "Not an HTTP step. POST /api/products needs Manager or Admin and nothing over HTTP can grant it, so run this in a terminal before step 06, with the username from step 03:\n\ndocker exec ambev_developer_evaluation_database psql -U developer -d developer_evaluation -c \"update \\\"Users\\\" set \\\"Role\\\" = 'Admin' where \\\"Username\\\" = '<username from step 03>'\"\n\nThe role is baked into the token, so the promotion has to happen before step 06.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/health",
+      "body": {},
+      "headers": [],
+      "authentication": {},
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 4000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_283ccb0a9ee754882899480be5242e7b",
+      "_type": "request",
+      "parentId": "fld_05e917d158027c8bde125a695ac97ad2",
+      "name": "05 Sign in as the customer",
+      "description": "Expects 200. The token is flat at .token and every later customer request reads it from here.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auth",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.customerEmail }}\",\n  \"password\": \"{{ _.password }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 5000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('customerToken', json.token);\n}\n"
+    },
+    {
+      "_id": "req_26d263e7ee301e0476d9315bdf8baa0e",
+      "_type": "request",
+      "parentId": "fld_05e917d158027c8bde125a695ac97ad2",
+      "name": "06 Sign in as the catalog writer",
+      "description": "Expects 200. Run this after step 04, otherwise the token still says Customer and step 07 answers 403.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auth",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.catalogEmail }}\",\n  \"password\": \"{{ _.password }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 6000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('catalogToken', json.token);\n}\n"
+    },
+    {
+      "_id": "req_c376958c2a0012bd2c9fe36ce0943feb",
+      "_type": "request",
+      "parentId": "fld_9e7b657f12a1cd74962c60fe751c8020",
+      "name": "07 Create the helmet at 10.00",
+      "description": "Expects 201. Four of these hits the 10 percent tier.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/products",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Helmet\",\n  \"price\": 10.0,\n  \"description\": \"Helmet for sale\",\n  \"category\": \"gear\",\n  \"image\": \"https://example.test/product.png\",\n  \"rating\": {\n    \"rate\": 4.1,\n    \"count\": 12\n  }\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.catalogToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 7000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('helmetId', json.id);\n}\n"
+    },
+    {
+      "_id": "req_886c5dda6cd3f8009407318a75b1fed0",
+      "_type": "request",
+      "parentId": "fld_9e7b657f12a1cd74962c60fe751c8020",
+      "name": "08 Create the gloves at 5.00",
+      "description": "Expects 201. Twelve of these hits the 20 percent tier.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/products",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Gloves\",\n  \"price\": 5.0,\n  \"description\": \"Gloves for sale\",\n  \"category\": \"gear\",\n  \"image\": \"https://example.test/product.png\",\n  \"rating\": {\n    \"rate\": 4.1,\n    \"count\": 12\n  }\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.catalogToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 8000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('glovesId', json.id);\n}\n"
+    },
+    {
+      "_id": "req_dea1d427110c403b700c53b605d88f4a",
+      "_type": "request",
+      "parentId": "fld_69491e1ccb462c4bd44a72a14531e23a",
+      "name": "09 Create the cart",
+      "description": "Expects 201. userId and date are accepted and ignored, the owner always comes from the token.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/carts",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"products\": [\n    {\n      \"productId\": \"{{ _.helmetId }}\",\n      \"quantity\": 4\n    },\n    {\n      \"productId\": \"{{ _.glovesId }}\",\n      \"quantity\": 12\n    }\n  ]\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 9000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('cartId', json.id);\n}\n"
+    },
+    {
+      "_id": "req_db19938e33bbe6e54d3e50aac2458665",
+      "_type": "request",
+      "parentId": "fld_69491e1ccb462c4bd44a72a14531e23a",
+      "name": "10 Check out",
+      "description": "Expects 201 with total 84.00, which is 40.00 less 4.00 plus 60.00 less 12.00. One transaction writes the sale, its items, the cart and the outbox row.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/sales",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cartId\": \"{{ _.cartId }}\",\n  \"branchId\": \"{{ _.branchDowntown }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 10000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('saleId', json.id);\n}\n"
+    },
+    {
+      "_id": "req_8a5f525c32c5c307d68863a48b1c8ae7",
+      "_type": "request",
+      "parentId": "fld_69491e1ccb462c4bd44a72a14531e23a",
+      "name": "11 Read the sale back",
+      "description": "Expects 200. customerName comes from the token and branchName from the seeded branch list, neither is a runtime join.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/sales/{{ _.saleId }}",
+      "body": {},
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 11000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_8730d9fcd669e8a9eb846e14faebdcb6",
+      "_type": "request",
+      "parentId": "fld_69491e1ccb462c4bd44a72a14531e23a",
+      "name": "12 Read the cart back",
+      "description": "Expects 200 with id, userId, date and products only. The checkout state is deliberately not in this contract, see carts-api.md. To see it:\n\ndocker exec ambev_developer_evaluation_database psql -U developer -d developer_evaluation -c 'select status, sale_id, checked_out_at from carts'",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/carts/{{ _.cartId }}",
+      "body": {},
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 12000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_e2f32f7aeaf3a947167d836914b296af",
+      "_type": "request",
+      "parentId": "fld_25ea1fd48101bffe291a551e3ee04bee",
+      "name": "13 Check the same cart out twice",
+      "description": "Expects 409 Sales.CartAlreadyCheckedOut. A cart is single use.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/sales",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cartId\": \"{{ _.cartId }}\",\n  \"branchId\": \"{{ _.branchDowntown }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 13000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_c00a6e30b33ccaee2552aab3295b7d57",
+      "_type": "request",
+      "parentId": "fld_25ea1fd48101bffe291a551e3ee04bee",
+      "name": "14 Create a cart of 21 identical units",
+      "description": "Expects 201. The cart accepts it, the 20 unit ceiling is a sale rule and only fires at checkout.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/carts",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"products\": [\n    {\n      \"productId\": \"{{ _.helmetId }}\",\n      \"quantity\": 21\n    }\n  ]\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 14000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const json = res.json();\n    insomnia.baseEnvironment.set('oversizedCartId', json.id);\n}\n"
+    },
+    {
+      "_id": "req_00df2b2669157d393707e3abf86e6292",
+      "_type": "request",
+      "parentId": "fld_25ea1fd48101bffe291a551e3ee04bee",
+      "name": "15 Check out 21 identical units",
+      "description": "Expects 422 Sales.QuantityExceeded. Nothing is written and the cart from step 14 is still Active, because the whole checkout is one transaction.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/sales",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cartId\": \"{{ _.oversizedCartId }}\",\n  \"branchId\": \"{{ _.branchDowntown }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 15000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_603f47fe0fc6f94da6c8d3f338ee311a",
+      "_type": "request",
+      "parentId": "fld_25ea1fd48101bffe291a551e3ee04bee",
+      "name": "16 Check out to an unregistered branch",
+      "description": "Expects 422 Sales.UnknownBranch. Branches are seeded configuration, not rows.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/sales",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cartId\": \"{{ _.oversizedCartId }}\",\n  \"branchId\": \"{{ _.branchUnknown }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 16000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_f1a290b616b14cd3318b6f874aea73bb",
+      "_type": "request",
+      "parentId": "fld_48a202b43489825f4451801e3ec7204b",
+      "name": "17 Recalculate the sale",
+      "description": "Expects 200 with total 90.00. The helmets move to the 20 percent tier and the gloves lose their discount. PUT only changes lines already on the sale, it cannot add a product. Raises SaleModified.",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/sales/{{ _.saleId }}",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"items\": [\n    {\n      \"productId\": \"{{ _.helmetId }}\",\n      \"quantity\": 10\n    },\n    {\n      \"productId\": \"{{ _.glovesId }}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 17000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const res = insomnia.response;\nif (res.code >= 200 && res.code < 300) {\n    const items = res.json().items || [];\n    if (items.length > 0) {\n        insomnia.baseEnvironment.set('cancellableItemId', items[0].id);\n    }\n}\n"
+    },
+    {
+      "_id": "req_ab71c69e7e53743826fe112c16c4508d",
+      "_type": "request",
+      "parentId": "fld_48a202b43489825f4451801e3ec7204b",
+      "name": "18 Cancel one line",
+      "description": "Expects 200. The sale stays Active because a line survives. Raises ItemCancelled. Cancelling the last active line would raise SaleCancelled too.",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/sales/{{ _.saleId }}/items/{{ _.cancellableItemId }}/cancel",
+      "body": {},
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 18000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_6d88a52cb5ea7dc8d00ff1f53eb660e0",
+      "_type": "request",
+      "parentId": "fld_48a202b43489825f4451801e3ec7204b",
+      "name": "19 Cancel the sale",
+      "description": "Expects 200 with status Cancelled. The body is optional. The row stays, cancellation never deletes. Raises SaleCancelled.",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/sales/{{ _.saleId }}/cancel",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reason\": \"walkthrough\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 19000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_138400700d4731798959cd23e0ff6606",
+      "_type": "request",
+      "parentId": "fld_48a202b43489825f4451801e3ec7204b",
+      "name": "20 Soft delete the sale",
+      "description": "Expects 204. Logical exclusion, the row is still on disk.",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/sales/{{ _.saleId }}",
+      "body": {},
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 20000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_52c1b4a750f43f4326bbd9733b1f7d28",
+      "_type": "request",
+      "parentId": "fld_48a202b43489825f4451801e3ec7204b",
+      "name": "21 Read the deleted sale",
+      "description": "Expects 404 Sales.NotFound. A global query filter keeps deleted sales out of every read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/sales/{{ _.saleId }}",
+      "body": {},
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 21000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_9c138bc492be1e69f3da9af69fae270e",
+      "_type": "request",
+      "parentId": "fld_48a202b43489825f4451801e3ec7204b",
+      "name": "22 List sales",
+      "description": "Expects 200 with data, totalItems, currentPage and totalPages. The deleted sale is absent.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/sales?_page=1&_size=10&_order=date desc",
+      "body": {},
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.customerToken }}"
+      },
+      "parameters": [],
+      "pathParameters": [],
+      "metaSortKey": 22000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    }
+  ]
+}
