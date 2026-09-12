@@ -54,9 +54,7 @@ public static class UsersTestClient
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var payload = body.GetProperty("data");
-        var token = (payload.TryGetProperty("data", out var inner) ? inner : payload)
-            .GetProperty("token").GetString();
+        var token = body.GetProperty("token").GetString();
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
