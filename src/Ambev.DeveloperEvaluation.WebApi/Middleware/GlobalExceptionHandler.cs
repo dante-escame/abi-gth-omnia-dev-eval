@@ -1,5 +1,4 @@
 using Ambev.DeveloperEvaluation.WebApi.Common;
-using Ambev.DeveloperEvaluation.Domain.Common;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 

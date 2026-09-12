@@ -1,22 +1,23 @@
 using Ambev.DeveloperEvaluation.Domain.Carts;
 using Ambev.DeveloperEvaluation.Domain.Carts.ValueObjects;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Integration.Common;
+using Ambev.DeveloperEvaluation.ORM;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Integration.Carts;
 
-[Collection(CartsCollection.Name)]
-public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
+[Collection(SalesContextCollection.Name)]
+public class CartRepositoryTests(SalesContextApiFactory factory) : IAsyncLifetime
 {
     public Task InitializeAsync() => factory.ResetAsync();
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Cart_With_Several_Lines_Survives_A_Round_Trip()
     {
         // Arrange
@@ -44,32 +45,37 @@ public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
         stored.Items.Single(item => item.Product.Id == titleless.Product.Id).Product.Title.Should().BeNull();
     }
 
-    [Fact]
-    public async Task The_Stored_Document_Uses_The_Documented_Element_Names()
+    [ContainerFact]
+    public async Task The_Stored_Rows_Use_The_Documented_Column_Names()
     {
         // Arrange
         var cart = Cart.Create(Guid.NewGuid(), [new CartItem(new ProductRef(Guid.NewGuid(), "Helmet"), new Quantity(3))]);
 
+        using (var writeScope = factory.Services.CreateScope())
+        {
+            await writeScope.ServiceProvider.GetRequiredService<ICartRepository>().CreateAsync(cart);
+        }
+
         using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
 
         // Act
-        await scope.ServiceProvider.GetRequiredService<ICartRepository>().CreateAsync(cart);
-
-        var document = await factory.RawCollection("carts")
-            .Find(Builders<BsonDocument>.Filter.Eq("_id", cart.Id))
-            .SingleAsync();
+        var cartColumns = await Columns(context, "carts");
+        var lineColumns = await Columns(context, "cart_items");
 
         // Assert
-        document.Names.Should().Contain(["_id", "userId", "status", "createdAt", "updatedAt", "products"]);
-
-        var line = document["products"].AsBsonArray.Single().AsBsonDocument;
-
-        line.Names.Should().BeEquivalentTo(["productId", "title", "quantity"]);
-        line["quantity"].AsInt32.Should().Be(3);
-        line["title"].AsString.Should().Be("Helmet");
+        cartColumns.Should().Contain(["user_id", "status", "created_at", "updated_at"]);
+        lineColumns.Should().Contain(["cart_id", "product_id", "product_title", "quantity"]);
     }
 
-    [Fact]
+    private static Task<List<string>> Columns(DefaultContext context, string table) =>
+        context.Database
+            .SqlQueryRaw<string>(
+                "select column_name as \"Value\" from information_schema.columns where table_name = {0}",
+                table)
+            .ToListAsync();
+
+    [ContainerFact]
     public async Task Updating_A_Cart_Replaces_The_Whole_Embedded_Line_Array()
     {
         // Arrange
@@ -91,7 +97,7 @@ public class CartRepositoryTests(CartsApiFactory factory) : IAsyncLifetime
         stored.UpdatedAt.Should().NotBeNull();
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Deleting_A_Cart_Reports_Whether_A_Document_Actually_Matched()
     {
         // Arrange

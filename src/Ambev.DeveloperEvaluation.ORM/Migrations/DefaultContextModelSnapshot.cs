@@ -22,6 +22,50 @@ namespace Ambev.DeveloperEvaluation.ORM.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.HasSequence("sale_number_seq");
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Carts.Cart", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CheckedOutAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checked_out_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid?>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("carts", (string)null);
+                });
+
             modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -48,6 +92,84 @@ namespace Ambev.DeveloperEvaluation.ORM.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Sales.Sale", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid>("CartId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cart_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_at");
+
+                    b.Property<DateTime>("SoldAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sold_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SoldAt");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("sales", (string)null);
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Sales.SaleItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("numeric(4,2)")
+                        .HasColumnName("discount_rate");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sale_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("sale_items", (string)null);
                 });
 
             modelBuilder.Entity("Ambev.DeveloperEvaluation.ORM.Outbox.OutboxMessage", b =>
@@ -92,6 +214,63 @@ namespace Ambev.DeveloperEvaluation.ORM.Migrations
                     b.HasKey("OutboxMessageId", "HandlerName");
 
                     b.ToTable("outbox_message_consumers", (string)null);
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Carts.Cart", b =>
+                {
+                    b.OwnsMany("Ambev.DeveloperEvaluation.Domain.Carts.ValueObjects.CartItem", "Items", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.Property<int>("Quantity")
+                                .HasColumnType("integer")
+                                .HasColumnName("quantity");
+
+                            b1.Property<Guid>("cart_id")
+                                .HasColumnType("uuid");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("cart_id");
+
+                            b1.ToTable("cart_items", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("cart_id");
+
+                            b1.OwnsOne("Ambev.DeveloperEvaluation.Domain.Carts.ValueObjects.ProductRef", "Product", b2 =>
+                                {
+                                    b2.Property<int>("CartItemId")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<Guid>("Id")
+                                        .HasColumnType("uuid")
+                                        .HasColumnName("product_id");
+
+                                    b2.Property<string>("Title")
+                                        .HasMaxLength(200)
+                                        .HasColumnType("character varying(200)")
+                                        .HasColumnName("product_title");
+
+                                    b2.HasKey("CartItemId");
+
+                                    b2.HasIndex("Id");
+
+                                    b2.ToTable("cart_items");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("CartItemId");
+                                });
+
+                            b1.Navigation("Product")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Entities.User", b =>
@@ -290,6 +469,180 @@ namespace Ambev.DeveloperEvaluation.ORM.Migrations
 
                     b.Navigation("Username")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Sales.Sale", b =>
+                {
+                    b.OwnsOne("Ambev.DeveloperEvaluation.Domain.Sales.ValueObjects.BranchRef", "Branch", b1 =>
+                        {
+                            b1.Property<Guid>("SaleId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("branch_id");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("branch_name");
+
+                            b1.HasKey("SaleId");
+
+                            b1.HasIndex("Id");
+
+                            b1.ToTable("sales");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SaleId");
+                        });
+
+                    b.OwnsOne("Ambev.DeveloperEvaluation.Domain.Sales.ValueObjects.CustomerRef", "Customer", b1 =>
+                        {
+                            b1.Property<Guid>("SaleId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("customer_id");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("customer_name");
+
+                            b1.HasKey("SaleId");
+
+                            b1.HasIndex("Id");
+
+                            b1.ToTable("sales");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SaleId");
+                        });
+
+                    b.OwnsOne("Ambev.DeveloperEvaluation.Domain.Sales.ValueObjects.Money", "Total", b1 =>
+                        {
+                            b1.Property<Guid>("SaleId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("total");
+
+                            b1.HasKey("SaleId");
+
+                            b1.ToTable("sales");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SaleId");
+                        });
+
+                    b.OwnsOne("Ambev.DeveloperEvaluation.Domain.Sales.ValueObjects.SaleNumber", "Number", b1 =>
+                        {
+                            b1.Property<Guid>("SaleId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(30)
+                                .HasColumnType("character varying(30)")
+                                .HasColumnName("sale_number");
+
+                            b1.HasKey("SaleId");
+
+                            b1.HasIndex("Value")
+                                .IsUnique();
+
+                            b1.ToTable("sales");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SaleId");
+                        });
+
+                    b.Navigation("Branch")
+                        .IsRequired();
+
+                    b.Navigation("Customer")
+                        .IsRequired();
+
+                    b.Navigation("Number")
+                        .IsRequired();
+
+                    b.Navigation("Total")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Sales.SaleItem", b =>
+                {
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Sales.Sale", null)
+                        .WithMany("_items")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Ambev.DeveloperEvaluation.Domain.Sales.ValueObjects.ProductRef", "Product", b1 =>
+                        {
+                            b1.Property<Guid>("SaleItemId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("product_id");
+
+                            b1.Property<string>("Title")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("product_title");
+
+                            b1.HasKey("SaleItemId");
+
+                            b1.HasIndex("Id");
+
+                            b1.ToTable("sale_items");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SaleItemId");
+                        });
+
+                    b.OwnsOne("Ambev.DeveloperEvaluation.Domain.Sales.ValueObjects.SaleItemTotals", "Totals", b1 =>
+                        {
+                            b1.Property<Guid>("SaleItemId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<decimal>("Discount")
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("discount_amount");
+
+                            b1.Property<decimal>("Gross")
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("gross_amount");
+
+                            b1.Property<decimal>("Net")
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("net_amount");
+
+                            b1.HasKey("SaleItemId");
+
+                            b1.ToTable("sale_items");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SaleItemId");
+                        });
+
+                    b.Navigation("Product")
+                        .IsRequired();
+
+                    b.Navigation("Totals")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Sales.Sale", b =>
+                {
+                    b.Navigation("_items");
                 });
 #pragma warning restore 612, 618
         }

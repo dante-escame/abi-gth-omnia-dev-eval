@@ -7,5 +7,6 @@ public enum ErrorCategory
     Conflict,
     Unauthorized,
     Forbidden,
+    UnprocessableEntity,
     Unexpected
 }

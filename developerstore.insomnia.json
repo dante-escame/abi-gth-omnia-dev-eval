@@ -1,0 +1,1153 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-09-11T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v10.0.0",
+  "resources": [
+    {
+      "_id": "wrk_developerstore",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "DeveloperStore API",
+      "description": "Sales-centric commerce backend. Auth, Users, Products, Carts and Sales.\n\nSet `baseUrl` in the active environment. Run `Auth > Login` first: its after-response script stores the JWT in the `token` environment variable, which every other request sends as a bearer token.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_developerstore",
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:8080",
+        "token": "",
+        "userId": "00000000-0000-0000-0000-000000000000",
+        "productId": "00000000-0000-0000-0000-000000000000",
+        "cartId": "00000000-0000-0000-0000-000000000000",
+        "saleId": "00000000-0000-0000-0000-000000000000",
+        "saleItemId": "00000000-0000-0000-0000-000000000000",
+        "branchId": "3f2a6c10-5f1e-4b8a-9c2d-0a1b2c3d4e01"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl",
+          "token",
+          "userId",
+          "productId",
+          "cartId",
+          "saleId",
+          "saleItemId",
+          "branchId"
+        ]
+      },
+      "metaSortKey": 1789157028874,
+      "isPrivate": false
+    },
+    {
+      "_id": "env_docker",
+      "_type": "environment",
+      "parentId": "env_base",
+      "name": "Docker Compose (8080)",
+      "data": {
+        "baseUrl": "http://localhost:8080"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl"
+        ]
+      },
+      "metaSortKey": 1789157028875,
+      "isPrivate": false
+    },
+    {
+      "_id": "env_local",
+      "_type": "environment",
+      "parentId": "env_base",
+      "name": "Local dotnet run (5119)",
+      "data": {
+        "baseUrl": "http://localhost:5119"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl"
+        ]
+      },
+      "metaSortKey": 1789157028876,
+      "isPrivate": false
+    },
+    {
+      "_id": "jar_default",
+      "_type": "cookie_jar",
+      "parentId": "wrk_developerstore",
+      "name": "Default Jar",
+      "cookies": []
+    },
+    {
+      "_id": "grp_auth",
+      "_type": "request_group",
+      "parentId": "wrk_developerstore",
+      "name": "Auth",
+      "description": "JWT issuance. Identity & Access context (UsersAPI).",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -999999000
+    },
+    {
+      "_id": "req_auth_login",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "POST Login",
+      "description": "Authenticates by e-mail and password and returns a JWT.\n\nRate limited by the `Login` policy — repeated failures return 429.\n\n200 body: `{ success, message, data: { token, email, name, role }, errors }`\n400 invalid request - 401 bad credentials - 429 too many attempts\n\nThe after-response script writes `data.token` into the `token` environment variable.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/Auth",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -999998000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@developerstore.com\",\n  \"password\": \"Str0ng!Pass\"\n}"
+      },
+      "afterResponseScript": "const body = insomnia.response.json();\nif (body && body.data && body.data.token) {\n  insomnia.environment.set('token', body.data.token);\n}\n"
+    },
+    {
+      "_id": "grp_users",
+      "_type": "request_group",
+      "parentId": "wrk_developerstore",
+      "name": "Users",
+      "description": "Identity & Access context. PostgreSQL + EF Core.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -999997000
+    },
+    {
+      "_id": "req_users_list",
+      "_type": "request",
+      "parentId": "grp_users",
+      "name": "GET List users",
+      "description": "Paged user list. Requires authentication.\n\nQuery conventions (shared by every list endpoint):\n- `_page`, `_size` (defaults 1 and 10)\n- `_order=\"field desc, other asc\"`, multiple terms allowed\n- exact filter: `field=value`\n- partial match: `value*` starts with, `*value` ends with, `*value*` contains\n- ranges: `_minField=`, `_maxField=`\n\n200 body: `{ data, totalItems, currentPage, totalPages }`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Users",
+      "parameters": [
+        {
+          "id": "pair__page_1",
+          "name": "_page",
+          "value": "1",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__size_10",
+          "name": "_size",
+          "value": "10",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__order_username asc",
+          "name": "_order",
+          "value": "username asc",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair_username_jo*",
+          "name": "username",
+          "value": "jo*",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair_status_Active",
+          "name": "status",
+          "value": "Active",
+          "description": "",
+          "disabled": true
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999996000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_users_get",
+      "_type": "request",
+      "parentId": "grp_users",
+      "name": "GET User by id",
+      "description": "Single user.\n\n200 user - 404 `Users.NotFound`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Users/{{ _.userId }}",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999995000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_users_create",
+      "_type": "request",
+      "parentId": "grp_users",
+      "name": "POST Create user",
+      "description": "Registers a user. Anonymous is allowed — an unauthenticated caller may only create a `Customer`; creating a `Manager` or `Admin` requires an `Admin` token.\n\n`status`: Unknown | Active | Inactive | Suspended\n`role`: None | Customer | Manager | Admin\n\n201 created (Location header) - 400 validation - 409 e-mail or username taken",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/Users",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -999994000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"john.doe@developerstore.com\",\n  \"username\": \"johndoe\",\n  \"password\": \"Str0ng!Pass\",\n  \"name\": {\n    \"firstname\": \"John\",\n    \"lastname\": \"Doe\"\n  },\n  \"address\": {\n    \"city\": \"S\\u00e3o Paulo\",\n    \"street\": \"Avenida Paulista\",\n    \"number\": 1578,\n    \"zipcode\": \"01310-200\",\n    \"geolocation\": {\n      \"lat\": \"-23.5613\",\n      \"long\": \"-46.6560\"\n    }\n  },\n  \"phone\": \"+5511999998888\",\n  \"status\": \"Active\",\n  \"role\": \"Customer\"\n}"
+      }
+    },
+    {
+      "_id": "req_users_update",
+      "_type": "request",
+      "parentId": "grp_users",
+      "name": "PUT Update user",
+      "description": "Replaces the mutable fields of a user. Requires authentication.\n\n`password` is optional — omit or send null to keep the current one. Only an `Admin` may change a role.\n\n200 updated - 403 not allowed - 404 not found - 409 e-mail or username taken",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/Users/{{ _.userId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999993000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"john.doe@developerstore.com\",\n  \"username\": \"johndoe\",\n  \"password\": null,\n  \"name\": {\n    \"firstname\": \"John\",\n    \"lastname\": \"Doe\"\n  },\n  \"address\": {\n    \"city\": \"S\\u00e3o Paulo\",\n    \"street\": \"Avenida Paulista\",\n    \"number\": 1578,\n    \"zipcode\": \"01310-200\",\n    \"geolocation\": {\n      \"lat\": \"-23.5613\",\n      \"long\": \"-46.6560\"\n    }\n  },\n  \"phone\": \"+5511999998888\",\n  \"status\": \"Active\",\n  \"role\": \"Customer\"\n}"
+      }
+    },
+    {
+      "_id": "req_users_delete",
+      "_type": "request",
+      "parentId": "grp_users",
+      "name": "DELETE User",
+      "description": "Deletes a user. Requires authentication.\n\n204 deleted - 404 not found",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/Users/{{ _.userId }}",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999992000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "grp_products",
+      "_type": "request_group",
+      "parentId": "wrk_developerstore",
+      "name": "Products",
+      "description": "Catalog context. MongoDB. Every endpoint requires a token; writes require `Manager` or `Admin`.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -999991000
+    },
+    {
+      "_id": "req_products_list",
+      "_type": "request",
+      "parentId": "grp_products",
+      "name": "GET List products",
+      "description": "Paged product list, same query conventions as the other lists.\n\n200 body: `{ data, totalItems, currentPage, totalPages }`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Products",
+      "parameters": [
+        {
+          "id": "pair__page_1",
+          "name": "_page",
+          "value": "1",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__size_10",
+          "name": "_size",
+          "value": "10",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__order_price desc, title asc",
+          "name": "_order",
+          "value": "price desc, title asc",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair_title_Fjallraven*",
+          "name": "title",
+          "value": "Fjallraven*",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair_category_*clothing",
+          "name": "category",
+          "value": "*clothing",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair__minPrice_50",
+          "name": "_minPrice",
+          "value": "50",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair__maxPrice_200",
+          "name": "_maxPrice",
+          "value": "200",
+          "description": "",
+          "disabled": true
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999990000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_products_categories",
+      "_type": "request",
+      "parentId": "grp_products",
+      "name": "GET List categories",
+      "description": "Every distinct category in the catalog.\n\n200 body: `[\"electronics\", \"men's clothing\", ...]`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Products/categories",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999989000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_products_by_category",
+      "_type": "request",
+      "parentId": "grp_products",
+      "name": "GET Products by category",
+      "description": "Paged product list narrowed to one category. The category travels in the path — URL-encode it when it contains spaces or apostrophes (`men's%20clothing`).\n\n200 body: `{ data, totalItems, currentPage, totalPages }`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Products/category/electronics",
+      "parameters": [
+        {
+          "id": "pair__page_1",
+          "name": "_page",
+          "value": "1",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__size_10",
+          "name": "_size",
+          "value": "10",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__order_price asc",
+          "name": "_order",
+          "value": "price asc",
+          "description": "",
+          "disabled": true
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999988000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_products_get",
+      "_type": "request",
+      "parentId": "grp_products",
+      "name": "GET Product by id",
+      "description": "Single product.\n\n200 product - 404 `Products.NotFound`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Products/{{ _.productId }}",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999987000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_products_create",
+      "_type": "request",
+      "parentId": "grp_products",
+      "name": "POST Create product",
+      "description": "Creates a product. Requires `Manager` or `Admin`.\n\n201 created (Location header) - 400 validation - 403 wrong role",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/Products",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999986000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Fjallraven Foldsack No. 1 Backpack\",\n  \"price\": 109.95,\n  \"description\": \"Your perfect pack for everyday use and walks in the forest.\",\n  \"category\": \"men's clothing\",\n  \"image\": \"https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg\",\n  \"rating\": {\n    \"rate\": 3.9,\n    \"count\": 120\n  }\n}"
+      }
+    },
+    {
+      "_id": "req_products_update",
+      "_type": "request",
+      "parentId": "grp_products",
+      "name": "PUT Update product",
+      "description": "Replaces a product. Requires `Manager` or `Admin`.\n\n200 updated - 400 validation - 403 wrong role - 404 not found",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/Products/{{ _.productId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999985000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Fjallraven Foldsack No. 1 Backpack\",\n  \"price\": 129.95,\n  \"description\": \"Your perfect pack for everyday use and walks in the forest.\",\n  \"category\": \"men's clothing\",\n  \"image\": \"https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg\",\n  \"rating\": {\n    \"rate\": 4.1,\n    \"count\": 143\n  }\n}"
+      }
+    },
+    {
+      "_id": "req_products_delete",
+      "_type": "request",
+      "parentId": "grp_products",
+      "name": "DELETE Product",
+      "description": "Deletes a product. Requires `Manager` or `Admin`.\n\n204 deleted - 403 wrong role - 404 not found",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/Products/{{ _.productId }}",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999984000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_products_replay",
+      "_type": "request",
+      "parentId": "grp_products",
+      "name": "POST Replay product events",
+      "description": "Re-enqueues the catalog integration events so a downstream consumer can rebuild its snapshots. Requires `Admin`. No request body.\n\n202 body: `{ enqueued: <count> }` - 403 wrong role",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/Products/replay",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999983000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "grp_carts",
+      "_type": "request_group",
+      "parentId": "wrk_developerstore",
+      "name": "Carts",
+      "description": "Cart context. PostgreSQL + EF Core. Every endpoint requires a token; a Customer sees only their own carts, a Manager or Admin sees every cart.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -999982000
+    },
+    {
+      "_id": "req_carts_list",
+      "_type": "request",
+      "parentId": "grp_carts",
+      "name": "GET List carts",
+      "description": "Paged cart list for the caller, same query conventions as the other lists.\n\n200 body: `{ data, totalItems, currentPage, totalPages }`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Carts",
+      "parameters": [
+        {
+          "id": "pair__page_1",
+          "name": "_page",
+          "value": "1",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__size_10",
+          "name": "_size",
+          "value": "10",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__order_date desc",
+          "name": "_order",
+          "value": "date desc",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair__minDate_2026-01-01",
+          "name": "_minDate",
+          "value": "2026-01-01",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair__maxDate_2026-12-31",
+          "name": "_maxDate",
+          "value": "2026-12-31",
+          "description": "",
+          "disabled": true
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999981000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_carts_get",
+      "_type": "request",
+      "parentId": "grp_carts",
+      "name": "GET Cart by id",
+      "description": "Single cart, with the product title snapshot on every line.\n\n200 cart - 404 `Carts.NotFound`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Carts/{{ _.cartId }}",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999980000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_carts_create",
+      "_type": "request",
+      "parentId": "grp_carts",
+      "name": "POST Create cart",
+      "description": "Creates a cart for the caller. `userId` and `date` are accepted for contract compatibility, but the owner is taken from the token and the date from the server clock.\n\n201 created (Location header) - 400 validation, unknown product or duplicate line",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/Carts",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999979000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userId\": \"{{ _.userId }}\",\n  \"date\": \"2026-09-11T12:00:00Z\",\n  \"products\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 4\n    },\n    {\n      \"productId\": \"00000000-0000-0000-0000-000000000000\",\n      \"quantity\": 1\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_carts_update",
+      "_type": "request",
+      "parentId": "grp_carts",
+      "name": "PUT Update cart",
+      "description": "Replaces the whole line set of a cart.\n\n200 updated - 400 validation - 404 not found - 409 already checked out",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/Carts/{{ _.cartId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999978000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userId\": \"{{ _.userId }}\",\n  \"date\": \"2026-09-11T12:00:00Z\",\n  \"products\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 10\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_carts_delete",
+      "_type": "request",
+      "parentId": "grp_carts",
+      "name": "DELETE Cart",
+      "description": "Deletes a cart.\n\n204 deleted - 404 not found - 409 already checked out",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/Carts/{{ _.cartId }}",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999977000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "grp_sales",
+      "_type": "request_group",
+      "parentId": "wrk_developerstore",
+      "name": "Sales",
+      "description": "Sales context. PostgreSQL + EF Core. Every endpoint requires a token. A Customer is scoped to their own sales; a Manager or Admin sees every sale.\n\nDomain failures come back as `{ type, error, detail }` with a `Sales.*` type. Business rejections are 422, state conflicts are 409.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -999976000
+    },
+    {
+      "_id": "req_sales_create",
+      "_type": "request",
+      "parentId": "grp_sales",
+      "name": "POST Create sale (checkout)",
+      "description": "Turns a cart into a sale and checks the cart out in the same transaction. Prices, titles, discounts and totals are never accepted from the client — they are read from the catalog and computed by the discount policy (4-9 units: 10%, 10-20 units: 20%, under 4: none, over 20: rejected).\n\nThe customer comes from the token. The branch is resolved from the seeded `Branches` configuration section.\n\n201 created (Location header), body is the full sale\n400 `cartId` or `branchId` missing\n409 `Sales.CartAlreadyCheckedOut`\n422 `Sales.UnknownBranch`, `Sales.UnknownCart` (also a cart owned by someone else), `Sales.EmptyCart`, `Sales.UnknownProduct`, `Sales.QuantityExceeded`, `Sales.Rejected`",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/Sales",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999975000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cartId\": \"{{ _.cartId }}\",\n  \"branchId\": \"{{ _.branchId }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_sales_list",
+      "_type": "request",
+      "parentId": "grp_sales",
+      "name": "GET List sales",
+      "description": "Paged sale list. Soft-deleted sales never appear. A Customer sees only their own sales.\n\nFilters: exact on `status`, `customerId` and `branchId`, partial on `saleNumber`, ranges `_minDate`, `_maxDate`, `_minTotal`, `_maxTotal`.\n\n200 body: `{ data, totalItems, currentPage, totalPages }`",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Sales",
+      "parameters": [
+        {
+          "id": "pair__page_1",
+          "name": "_page",
+          "value": "1",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__size_10",
+          "name": "_size",
+          "value": "10",
+          "description": "",
+          "disabled": false
+        },
+        {
+          "id": "pair__order_total desc",
+          "name": "_order",
+          "value": "total desc",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair_status_Active",
+          "name": "status",
+          "value": "Active",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair_customerId_{{ _.userId }}",
+          "name": "customerId",
+          "value": "{{ _.userId }}",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair_branchId_{{ _.branchId }}",
+          "name": "branchId",
+          "value": "{{ _.branchId }}",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair_saleNumber_2026*",
+          "name": "saleNumber",
+          "value": "2026*",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair__minDate_2026-01-01",
+          "name": "_minDate",
+          "value": "2026-01-01",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair__maxDate_2026-12-31",
+          "name": "_maxDate",
+          "value": "2026-12-31",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair__minTotal_100",
+          "name": "_minTotal",
+          "value": "100",
+          "description": "",
+          "disabled": true
+        },
+        {
+          "id": "pair__maxTotal_5000",
+          "name": "_maxTotal",
+          "value": "5000",
+          "description": "",
+          "disabled": true
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999974000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_sales_get",
+      "_type": "request",
+      "parentId": "grp_sales",
+      "name": "GET Sale by id",
+      "description": "Single sale with every item, cancelled ones included. Each item carries `productId`, `title`, `quantity`, `unitPrice`, `discount`, `total` and `status`.\n\n`status` and each item `status` serialize as strings (`Active` / `Cancelled`).\n\n200 sale - 404 `Sales.NotFound` (also for a soft-deleted sale, or a sale belonging to another customer)",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/Sales/{{ _.saleId }}",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999973000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_sales_update",
+      "_type": "request",
+      "parentId": "grp_sales",
+      "name": "PUT Update sale items",
+      "description": "Replaces the quantity set of products already on the sale and re-applies the discount tiers. Unit prices are never re-read, so the sale keeps the prices it was born with. Dropping a line is allowed; an empty list is not. The cart is not touched.\n\n200 recalculated sale\n400 a line with an empty `productId` or a quantity below 1\n404 `Sales.NotFound`\n409 `Sales.AlreadyCancelled`\n422 `Sales.UnknownItem`, `Sales.EmptySale`, `Sales.QuantityExceeded`",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/Sales/{{ _.saleId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999972000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"items\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 6\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_sales_cancel",
+      "_type": "request",
+      "parentId": "grp_sales",
+      "name": "PATCH Cancel sale",
+      "description": "Cancels a sale and keeps the row. Idempotent — a second call returns 200 and publishes nothing. The optional `reason` travels into the `SaleCancelled` event payload. Cancelling does not reopen the cart.\n\n200 cancelled - 404 not found",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/Sales/{{ _.saleId }}/cancel",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999971000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reason\": \"Customer changed their mind\"\n}"
+      }
+    },
+    {
+      "_id": "req_sales_delete",
+      "_type": "request",
+      "parentId": "grp_sales",
+      "name": "DELETE Sale",
+      "description": "Cancels the sale when it is still active, then sets the soft-delete marker. Idempotent — 204 both times. `SaleCancelled` is published exactly once across a cancel followed by a delete.\n\n204 deleted - 404 not found",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/Sales/{{ _.saleId }}",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999970000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_sales_cancel_item",
+      "_type": "request",
+      "parentId": "grp_sales",
+      "name": "PATCH Cancel sale item",
+      "description": "Cancels one line and recalculates the sale total. The cancelled line stays visible. Cancelling the last active item also cancels the sale, publishing both `ItemCancelled` and `SaleCancelled`.\n\n200 recalculated sale - 409 `Sales.AlreadyCancelled` or `Sales.ItemAlreadyCancelled` - 404 `Sales.ItemNotFound`\n\nNo request body.",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/Sales/{{ _.saleId }}/items/{{ _.saleItemId }}/cancel",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999969000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "grp_health",
+      "_type": "request_group",
+      "parentId": "wrk_developerstore",
+      "name": "Health",
+      "description": "Host probes. No authentication.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -999968000
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "grp_health",
+      "name": "GET Health",
+      "description": "Full health report.\n\n200 Healthy - 503 Unhealthy",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/health",
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -999967000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_health_live",
+      "_type": "request",
+      "parentId": "grp_health",
+      "name": "GET Liveness",
+      "description": "Liveness probe.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/health/live",
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -999966000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    },
+    {
+      "_id": "req_health_ready",
+      "_type": "request",
+      "parentId": "grp_health",
+      "name": "GET Readiness",
+      "description": "Readiness probe — checks the backing stores.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/health/ready",
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -999965000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "body": {}
+    }
+  ]
+}

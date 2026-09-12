@@ -5,14 +5,15 @@ using Ambev.DeveloperEvaluation.Domain.Carts;
 using Ambev.DeveloperEvaluation.Domain.Carts.ValueObjects;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Integration.Common;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Integration.Carts;
 
-[Collection(CartsCollection.Name)]
-public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
+[Collection(SalesContextCollection.Name)]
+public class CartQueriesTests(SalesContextApiFactory factory) : IAsyncLifetime
 {
     private static readonly DateTime Anchor = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 
@@ -24,7 +25,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Minimum_Date_Keeps_Only_The_Carts_Created_On_Or_After_It()
     {
         // Arrange
@@ -38,7 +39,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
         page.Data.Select(cart => cart.Date).Should().OnlyContain(date => date > Anchor.AddDays(-15));
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Maximum_Date_Keeps_Only_The_Carts_Created_On_Or_Before_It()
     {
         // Arrange
@@ -52,7 +53,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
         page.Data.Single().Date.Should().BeCloseTo(Anchor.AddDays(-20), TimeSpan.FromMilliseconds(2));
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Date_Range_Combines_Both_Limits_And_Keeps_The_Cart_In_The_Middle()
     {
         // Arrange
@@ -66,7 +67,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
         page.Data.Single().Date.Should().BeCloseTo(Anchor.AddDays(-10), TimeSpan.FromMilliseconds(2));
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task A_Date_In_Iso_Format_Is_Compared_In_Utc_And_Not_Shifted_Into_The_Local_Zone()
     {
         // Arrange
@@ -81,7 +82,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
         page.Data.Single().Date.Should().Be(Anchor.AddHours(2));
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task Ordering_By_Date_Descending_Sorts_The_Newest_Cart_First()
     {
         // Arrange
@@ -95,7 +96,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
         page.Data.First().Date.Should().BeCloseTo(Anchor, TimeSpan.FromMilliseconds(2));
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task An_Exact_User_Id_Filter_Keeps_Only_That_Customers_Carts()
     {
         // Arrange
@@ -109,7 +110,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
         page.Data.Single().UserId.Should().Be(_stranger);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task An_Exact_Status_Filter_Runs_As_A_Plain_String_Comparison()
     {
         // Arrange
@@ -129,7 +130,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
         page.TotalItems.Should().Be(1);
     }
 
-    [Fact]
+    [ContainerFact]
     public async Task The_Embedded_Line_Array_Materializes_Through_The_Projection()
     {
         // Arrange
@@ -181,7 +182,7 @@ public class CartQueriesTests(CartsApiFactory factory) : IAsyncLifetime
     {
         using var scope = factory.Services.CreateScope();
         var queries = scope.ServiceProvider.GetRequiredService<ICartQueries>();
-        var executor = scope.ServiceProvider.GetRequiredService<IDocumentPagedQueryExecutor>();
+        var executor = scope.ServiceProvider.GetRequiredService<IPagedQueryExecutor>();
 
         var list = ListQueryParser.Parse(Parse(queryString));
 

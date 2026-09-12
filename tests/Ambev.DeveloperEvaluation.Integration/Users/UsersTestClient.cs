@@ -8,6 +8,8 @@ namespace Ambev.DeveloperEvaluation.Integration.Users;
 
 public static class UsersTestClient
 {
+    public const int UnthrottledLoginPermitLimit = 10_000;
+
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     public static object NewUserBody(
@@ -52,9 +54,7 @@ public static class UsersTestClient
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        var payload = body.GetProperty("data");
-        var token = (payload.TryGetProperty("data", out var inner) ? inner : payload)
-            .GetProperty("token").GetString();
+        var token = body.GetProperty("token").GetString();
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }

@@ -11,6 +11,9 @@ public sealed record Error(string Type, string Summary, string Detail, ErrorCate
     public static Error Conflict(string type, string summary, string detail) =>
         new(type, summary, detail, ErrorCategory.Conflict);
 
+    public static Error Unprocessable(string type, string summary, string detail) =>
+        new(type, summary, detail, ErrorCategory.UnprocessableEntity);
+
     public static Error Forbidden(string type, string summary, string detail) =>
         new(type, summary, detail, ErrorCategory.Forbidden);
 }

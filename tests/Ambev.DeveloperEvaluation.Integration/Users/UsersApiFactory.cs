@@ -1,3 +1,4 @@
+using Ambev.DeveloperEvaluation.Integration.Common;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.WebApi;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +12,7 @@ using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Integration.Users;
 
-public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _database = new PostgreSqlBuilder()
         .WithImage("postgres:13")
@@ -21,8 +22,13 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
         .WithImage("mongo:8.0.16")
         .Build();
 
+    protected virtual int LoginPermitLimit => UsersTestClient.UnthrottledLoginPermitLimit;
+
     public async Task InitializeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         await Task.WhenAll(_database.StartAsync(), _catalog.StartAsync());
 
         using var scope = Services.CreateScope();
@@ -31,6 +37,9 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
 
     public new async Task DisposeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         await base.DisposeAsync();
         await _database.DisposeAsync();
         await _catalog.DisposeAsync();
@@ -38,6 +47,9 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
 
     public async Task ResetAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
         await context.Database.ExecuteSqlRawAsync(@"TRUNCATE ""Users"", outbox_messages, outbox_message_consumers");
@@ -53,7 +65,8 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>, IAsyncLife
                 ["ConnectionStrings:DefaultConnection"] = _database.GetConnectionString(),
                 ["Mongo:ConnectionString"] = _catalog.GetConnectionString(),
                 ["Mongo:Database"] = "developer_evaluation",
-                ["Outbox:IntervalInSeconds"] = "3600"
+                ["Outbox:IntervalInSeconds"] = "3600",
+                ["RateLimiting:Login:PermitLimit"] = LoginPermitLimit.ToString()
             }));
     }
 }

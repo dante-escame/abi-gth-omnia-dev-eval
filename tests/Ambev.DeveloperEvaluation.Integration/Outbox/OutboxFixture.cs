@@ -5,6 +5,8 @@ using Ambev.DeveloperEvaluation.Application.Common.Lists;
 using Ambev.DeveloperEvaluation.Application.Ports;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Domain.Sales.Services;
+using Ambev.DeveloperEvaluation.Integration.Common;
 using Ambev.DeveloperEvaluation.ORM.Repositories;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.ORM.Clock;
@@ -12,6 +14,7 @@ using Ambev.DeveloperEvaluation.ORM.Lists;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using MediatR;
 using NSubstitute;
+using Rebus.Bus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,6 +35,9 @@ public sealed class OutboxFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         await _database.StartAsync();
 
         var services = new ServiceCollection();
@@ -64,10 +70,17 @@ public sealed class OutboxFixture : IAsyncLifetime
         services.AddSingleton(Substitute.For<IDocumentPagedQueryExecutor>());
         services.AddSingleton(Substitute.For<IProductRepository>());
         services.AddSingleton(Substitute.For<IProductQueries>());
-        services.AddSingleton(Substitute.For<IProductTitles>());
+        services.AddSingleton(Substitute.For<IProductReader>());
         services.AddSingleton(Substitute.For<IProductEventReplay>());
         services.AddSingleton(Substitute.For<ICartRepository>());
         services.AddSingleton(Substitute.For<ICartQueries>());
+        services.AddSingleton(Substitute.For<ISaleRepository>());
+        services.AddSingleton(Substitute.For<ISaleQueries>());
+        services.AddSingleton(Substitute.For<ISaleNumberGenerator>());
+        services.AddSingleton(Substitute.For<IBranchDirectory>());
+        services.AddSingleton(Substitute.For<IUnitOfWork>());
+        services.AddSingleton(Substitute.For<IBus>());
+        services.AddSingleton<IDiscountPolicy, TieredDiscountPolicy>();
         services.AddSingleton<ProcessOutboxJob>();
 
         Services = services.BuildServiceProvider(new ServiceProviderOptions
@@ -82,6 +95,9 @@ public sealed class OutboxFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         if (Services != null!)
             await Services.DisposeAsync();
 
@@ -90,6 +106,9 @@ public sealed class OutboxFixture : IAsyncLifetime
 
     public async Task ResetAsync()
     {
+        if (!ContainerRuntime.IsAvailable)
+            return;
+
         Logs.Clear();
 
         using var scope = Services.CreateScope();

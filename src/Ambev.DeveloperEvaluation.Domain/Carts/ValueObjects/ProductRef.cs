@@ -8,6 +8,10 @@ public sealed class ProductRef : ValueObject
 
     public string? Title { get; }
 
+    private ProductRef()
+    {
+    }
+
     public ProductRef(Guid id, string? title = null)
     {
         if (id == Guid.Empty)

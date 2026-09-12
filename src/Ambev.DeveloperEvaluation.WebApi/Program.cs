@@ -8,6 +8,7 @@ using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
+using Ambev.DeveloperEvaluation.WebApi.RateLimiting;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using MediatR;
@@ -24,7 +25,7 @@ public class Program
         {
             Log.Information("Starting web application");
 
-            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+            var builder = WebApplication.CreateBuilder(args);
             builder.AddDefaultLogging();
 
             builder.Host.UseDefaultServiceProvider(options =>
@@ -53,6 +54,8 @@ public class Program
             );
 
             builder.Services.AddJwtAuthentication(builder.Configuration);
+
+            builder.Services.AddLoginRateLimiting(builder.Configuration);
 
             builder.RegisterDependencies();
 
@@ -83,6 +86,8 @@ public class Program
             }
 
             app.UseHttpsRedirection();
+
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();

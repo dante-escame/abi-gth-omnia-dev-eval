@@ -1,5 +1,4 @@
 using Ambev.DeveloperEvaluation.Application.Common.Results;
-using Microsoft.AspNetCore.Http;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Common;
 
@@ -12,6 +11,7 @@ public static class ApiResults
         ErrorCategory.Forbidden => StatusCodes.Status403Forbidden,
         ErrorCategory.NotFound => StatusCodes.Status404NotFound,
         ErrorCategory.Conflict => StatusCodes.Status409Conflict,
+        ErrorCategory.UnprocessableEntity => StatusCodes.Status422UnprocessableEntity,
         _ => StatusCodes.Status500InternalServerError
     };
 

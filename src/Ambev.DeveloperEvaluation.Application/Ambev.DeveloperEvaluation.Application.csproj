@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Ambev.DeveloperEvaluation.Domain\Ambev.DeveloperEvaluation.Domain.csproj" />
     <ProjectReference Include="..\Ambev.DeveloperEvaluation.Catalog.IntegrationEvents\Ambev.DeveloperEvaluation.Catalog.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\Ambev.DeveloperEvaluation.Sales.IntegrationEvents\Ambev.DeveloperEvaluation.Sales.IntegrationEvents.csproj" />
   </ItemGroup>
 
   <ItemGroup>

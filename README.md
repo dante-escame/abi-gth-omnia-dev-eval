@@ -1,86 +1,56 @@
-# Developer Evaluation Project
+# Developer Evaluation Project - Sales Environment
 
-`READ CAREFULLY`
+Implementation of a Sales API for a DeveloperStore.
+Complete CRUD that handles sales records and discounts.
 
-## Instructions
-**The test below will have up to 7 calendar days to be delivered from the date of receipt of this manual.**
+This README.md file was re-written to summarize project architecture and decisions.
+The original specifications can be found [here](/.doc/original-specs.md).
 
-- The code must be versioned in a public Github repository and a link must be sent for evaluation once completed
-- Upload this template to your repository and start working from it
-- Read the instructions carefully and make sure all requirements are being addressed
-- The repository must provide instructions on how to configure, execute and test the project
-- Documentation and overall organization will also be taken into consideration
+---
 
-## Use Case
-**You are a developer on the DeveloperStore team. Now we need to implement the API prototypes.**
+# Documentation
 
-As we work with `DDD`, to reference entities from other domains, we use the `External Identities` pattern with denormalization of entity descriptions.
+The files that are stored directly under the `docs` folder are the specs documentation for the project passed by the recruiter using a template.
 
-Therefore, you will write an API (complete CRUD) that handles sales records. The API needs to be able to inform:
+The files inside the `docs/my-own` folder are my personal documentation and they will be referenced here.
 
-* Sale number
-* Date when the sale was made
-* Customer
-* Total sale amount
-* Branch where the sale was made
-* Products
-* Quantities
-* Unit prices
-* Discounts
-* Total amount for each item
-* Cancelled/Not Cancelled
+I strongly recommend reading the content inside the `docs/my-own` folder, the intention is to provide a better understanding of the project decisions.
 
-It's not mandatory, but it would be a differential to build code for publishing events of:
-* SaleCreated
-* SaleModified
-* SaleCancelled
-* ItemCancelled
+My docs include:
 
-If you write the code, **it's not required** to actually publish to any Message Broker. You can log a message in the application log or however you find most convenient.
+- [Implementation Requirements](docs/my-own/basics-of-implementation.md) - A high-level overview of the project architecture written in my words.
+- [Project Decisions](docs/my-own/project-decisions.md) - A detailed overview of the project architecture and decisions made by me.
+- [Architecture Diagrams](docs/my-own/diagrams.md) - Bundle of diagrams that show the project architecture - made in mermaid.
+- [Local Environment](docs/my-own/local-environment.md) - A group of useful commands to setup/reset the local environment.
+- [API Documentation](docs/my-own/checkout-walkthrough.insomnia.json) - Importable API documentation built in Insomnia.
+- [List Of Tests](docs/my-own/test-scenarios.md) - Listing the test scenarios before implementing.
 
-### Business Rules
+---
 
-* Purchases above 4 identical items have a 10% discount
-* Purchases between 10 and 20 identical items have a 20% discount
-* It's not possible to sell above 20 identical items
-* Purchases below 4 items cannot have a discount
+# How to run the project
 
-These business rules define quantity-based discounting tiers and limitations:
+Well, you can run the project locally. We have docker compose configured!
 
-1. Discount Tiers:
-   - 4+ items: 10% discount
-   - 10-20 items: 20% discount
+1 - Run Docker, add PATH (probably manual in Windows) and then apply the migrations.
 
-2. Restrictions:
-   - Maximum limit: 20 items per product
-   - No discounts allowed for quantities below 4 items
+```
+docker compose down -v
+docker compose up -d
+export PATH="$PATH:$HOME/.dotnet/tools"   # or fish_add_path once
+dotnet ef database update --project src/Ambev.DeveloperEvaluation.ORM --startup-project src/Ambev.DeveloperEvaluation.WebApi
+```
 
-## Overview
-This section provides a high-level overview of the project and the various skills and competencies it aims to assess for developer candidates. 
+2 - Download Insomnia and import the API documentation.
 
-See [Overview](/.doc/overview.md)
+[API Documentation](docs/my-own/checkout-walkthrough.insomnia.json)
 
-## Tech Stack
-This section lists the key technologies used in the project, including the backend, testing, frontend, and database components. 
+3 - Run the Insomnia Journey.
 
-See [Tech Stack](/.doc/tech-stack.md)
+The only manual step of the Insomnia Journey is "04" - Promote the catalog writer do Admin running SQL in the database.
+If on Windows, you can do it in Docker Desktop interface probably.
 
-## Frameworks
-This section outlines the frameworks and libraries that are leveraged in the project to enhance development productivity and maintainability. 
-
-See [Frameworks](/.doc/frameworks.md)
-
-<!-- 
-## API Structure
-This section includes links to the detailed documentation for the different API resources:
-- [API General](./docs/general-api.md)
-- [Products API](/.doc/products-api.md)
-- [Carts API](/.doc/carts-api.md)
-- [Users API](/.doc/users-api.md)
-- [Auth API](/.doc/auth-api.md)
--->
-
-## Project Structure
-This section describes the overall structure and organization of the project files and directories. 
-
-See [Project Structure](/.doc/project-structure.md)
+```
+docker exec -it ambev_developer_evaluation_database psql -U developer -d developer_evaluation
+update "Users" set "Role" = 'Admin' where "Username" = '<admin-username-here>';
+```
+* These commands will connect to the docker psql instance and promote the user to Admin role.

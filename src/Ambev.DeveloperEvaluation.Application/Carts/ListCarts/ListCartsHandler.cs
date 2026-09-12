@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Carts.ListCarts;
 
-public sealed class ListCartsHandler(ICartQueries cartQueries, IDocumentPagedQueryExecutor executor)
+public sealed class ListCartsHandler(ICartQueries cartQueries, IPagedQueryExecutor executor)
     : IRequestHandler<ListCartsQuery, PagedResult<CartResult>>
 {
     public async Task<PagedResult<CartResult>> Handle(ListCartsQuery request, CancellationToken cancellationToken)

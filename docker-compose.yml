@@ -11,6 +11,12 @@ services:
       - ConnectionStrings__DefaultConnection=Host=ambev.developerevaluation.database;Port=5432;Database=developer_evaluation;Username=developer;Password=ev@luAt10n
       - Mongo__ConnectionString=mongodb://developer:ev%40luAt10n@ambev.developerevaluation.nosql:27017/?authSource=admin
       - Mongo__Database=developer_evaluation
+      - Branches__Entries__0__Id=3f2a6c10-5f1e-4b8a-9c2d-0a1b2c3d4e01
+      - Branches__Entries__0__Name=Downtown Store
+      - Branches__Entries__1__Id=3f2a6c10-5f1e-4b8a-9c2d-0a1b2c3d4e02
+      - Branches__Entries__1__Name=Riverside Store
+      - Branches__Entries__2__Id=3f2a6c10-5f1e-4b8a-9c2d-0a1b2c3d4e03
+      - Branches__Entries__2__Name=Airport Store
     ports:
       - "8080:8080"
     depends_on:
