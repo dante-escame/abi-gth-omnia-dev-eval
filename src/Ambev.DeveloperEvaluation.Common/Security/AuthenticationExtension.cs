@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Ambev.DeveloperEvaluation.Common.Security
 {
@@ -35,11 +37,38 @@ namespace Ambev.DeveloperEvaluation.Common.Security
                     ValidateAudience = false,
                     ClockSkew = TimeSpan.Zero
                 };
+
+                x.Events = new JwtBearerEvents
+                {
+                    OnChallenge = context =>
+                    {
+                        context.HandleResponse();
+
+                        return WriteError(
+                            context.Response,
+                            StatusCodes.Status401Unauthorized,
+                            "AuthenticationError",
+                            "Invalid authentication",
+                            "The provided credentials are invalid or the session has expired");
+                    },
+                    OnForbidden = context => WriteError(
+                        context.Response,
+                        StatusCodes.Status403Forbidden,
+                        "AuthorizationError",
+                        "Access denied",
+                        "Your role does not allow this operation")
+                };
             });
 
-            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-
             return services;
+        }
+
+        private static Task WriteError(HttpResponse response, int status, string type, string error, string detail)
+        {
+            response.StatusCode = status;
+            response.ContentType = "application/json";
+
+            return response.WriteAsJsonAsync(new { type, error, detail });
         }
     }
 }

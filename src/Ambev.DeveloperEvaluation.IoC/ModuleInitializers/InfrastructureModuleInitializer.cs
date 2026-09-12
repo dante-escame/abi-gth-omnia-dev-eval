@@ -7,10 +7,15 @@ using Ambev.DeveloperEvaluation.ORM.Clock;
 using Ambev.DeveloperEvaluation.ORM.Lists;
 using Ambev.DeveloperEvaluation.ORM.Outbox;
 using Ambev.DeveloperEvaluation.ORM.Repositories;
+using Ambev.DeveloperEvaluation.Persistence.Mongo;
+using Ambev.DeveloperEvaluation.Persistence.Mongo.Lists;
+using Ambev.DeveloperEvaluation.Persistence.Mongo.Products;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 namespace Ambev.DeveloperEvaluation.IoC.ModuleInitializers;
 
@@ -27,5 +32,23 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddScoped<IOutboxConsumerTracker, OutboxConsumerTracker>();
         builder.Services.AddSingleton<ProcessOutboxJob>();
         builder.Services.AddHostedService(provider => provider.GetRequiredService<ProcessOutboxJob>());
+
+        MongoSerializationConventions.Register();
+        builder.Services.Configure<MongoOptions>(builder.Configuration.GetSection("Mongo"));
+        builder.Services.AddSingleton<IMongoClient>(provider =>
+            new MongoClient(provider.GetRequiredService<IOptions<MongoOptions>>().Value.ConnectionString));
+        builder.Services.AddSingleton(provider =>
+            provider.GetRequiredService<IMongoClient>()
+                .GetDatabase(provider.GetRequiredService<IOptions<MongoOptions>>().Value.Database));
+        builder.Services.AddSingleton<CatalogContext>();
+        builder.Services.AddSingleton<IDocumentPagedQueryExecutor, DocumentPagedQueryExecutor>();
+        builder.Services.AddScoped<IProductRepository, MongoProductRepository>();
+        builder.Services.AddScoped<IProductQueries, MongoProductQueries>();
+        builder.Services.AddHostedService<ProductIndexInitializer>();
+        builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>(
+            "MongoDB",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["readiness"],
+            timeout: TimeSpan.FromSeconds(5));
     }
 }
