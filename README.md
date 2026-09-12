@@ -10,20 +10,20 @@ The original specifications can be found [here](/.doc/original-specs.md).
 
 # Documentation
 
-The files that are stored directly under the `docs` folder are the specs documentation for the project passed by the recruiter using a template.
+The files that are stored directly under the `.doc` folder are the specs documentation for the project passed by the recruiter using a template.
 
-The files inside the `docs/my-own` folder are my personal documentation and they will be referenced here.
+The files inside the `.doc/my-own` folder are my personal documentation and they will be referenced here.
 
-I strongly recommend reading the content inside the `docs/my-own` folder, the intention is to provide a better understanding of the project decisions.
+I strongly recommend reading the content inside the `.doc/my-own` folder, the intention is to provide a better understanding of the project decisions.
 
 My docs include:
 
-- [Implementation Requirements](docs/my-own/basics-of-implementation.md) - A high-level overview of the project architecture written in my words.
-- [Project Decisions](docs/my-own/project-decisions.md) - A detailed overview of the project architecture and decisions made by me.
-- [Architecture Diagrams](docs/my-own/diagrams.md) - Bundle of diagrams that show the project architecture - made in mermaid.
-- [Local Environment](docs/my-own/local-environment.md) - A group of useful commands to setup/reset the local environment.
-- [API Documentation](docs/my-own/checkout-walkthrough.insomnia.json) - Importable API documentation built in Insomnia.
-- [List Of Tests](docs/my-own/test-scenarios.md) - Listing the test scenarios before implementing.
+- [Implementation Requirements](/.doc/my-own/basics-of-implementation.md) - A high-level overview of the project architecture written in my words.
+- [Project Decisions](/.doc/my-own/project-decisions.md) - A detailed overview of the project architecture and decisions made by me.
+- [Architecture Diagrams](/.doc/my-own/diagrams.md) - Bundle of diagrams that show the project architecture - made in mermaid.
+- [Local Environment](/.doc/my-own/local-environment.md) - A group of useful commands to setup/reset the local environment.
+- [API Documentation](/.doc/my-own/checkout-walkthrough.insomnia.json) - Importable API documentation built in Insomnia.
+- [List Of Tests](/.doc/my-own/test-scenarios.md) - Listing the test scenarios before implementing.
 
 ---
 
@@ -42,7 +42,7 @@ dotnet ef database update --project src/Ambev.DeveloperEvaluation.ORM --startup-
 
 2 - Download Insomnia and import the API documentation.
 
-[API Documentation](docs/my-own/checkout-walkthrough.insomnia.json)
+[API Documentation](/.doc/my-own/checkout-walkthrough.insomnia.json)
 
 3 - Run the Insomnia Journey.
 
