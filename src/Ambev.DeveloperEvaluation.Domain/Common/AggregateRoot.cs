@@ -2,7 +2,7 @@ namespace Ambev.DeveloperEvaluation.Domain.Common;
 
 public abstract class AggregateRoot : BaseEntity
 {
-    private readonly List<IDomainEvent> _domainEvents = new();
+    private readonly List<IDomainEvent> _domainEvents = [];
 
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.ToList();
 
